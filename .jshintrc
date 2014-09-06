@@ -1,0 +1,21 @@
+{
+  // "ENFORCING-OPTIONS": true,
+  "camelcase": true,
+  "eqeqeq": true,
+  "undef": true,
+  "unused": true,
+  "strict": true,
+  "maxparams": 3,
+  "maxdepth": 4,
+  "maxstatements": 12,
+  "maxcomplexity": 5,
+  "maxlen": 120,
+
+  // "RELAXING OPTIONS": true,
+  "laxbreak": true,
+
+  // "ENVIRONMENTS": true,
+  "browser": true,
+  "devel": true,
+  "node": true
+}

@@ -1,0 +1,43 @@
+{
+  "requireCurlyBraces": ["else", "for", "while", "do", "try", "catch", "case", "default"],
+  "requireSpaceAfterKeywords": ["if", "else", "for", "while", "do", "switch", "return", "try"],
+  "disallowSpaceAfterKeywords": ["catch"],
+  "requireSpaceBeforeBlockStatements": true,
+  "requireParenthesesAroundIIFE": true,
+  "requireSpacesInConditionalExpression": {
+    "afterTest": true,
+    "beforeConsequent": true,
+    "afterConsequent": true,
+    "beforeAlternate": true
+  },
+  "requireSpacesInFunctionExpression": {
+    "beforeOpeningCurlyBrace": true
+  },
+  "disallowSpacesInFunctionExpression": {
+    "beforeOpeningRoundBrace": true
+  },
+  "requireBlocksOnNewline": 1,
+  "disallowEmptyBlocks": true,
+  "disallowSpacesInsideParentheses": true,
+  "requireSpacesInsideObjectBrackets": "allButNested",
+  "disallowSpaceAfterObjectKeys": true,
+  "requireCommaBeforeLineBreak": true,
+  "requireOperatorBeforeLineBreak": ["=", "+", "-", "/", "*", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
+  "disallowSpaceAfterPrefixUnaryOperators": ["++", "--", "+", "-", "~", "!"],
+  "disallowSpaceBeforePostfixUnaryOperators": ["++", "--"],
+  "requireSpaceBeforeBinaryOperators": ["=", "+", "-", "/", "*", "==", "===", "!=", "!=="],
+  "requireSpaceAfterBinaryOperators": ["=", ",", "+", "-", "/", "*", "==", "===", "!=", "!=="],
+  "disallowSpaceBeforeBinaryOperators": [","],
+  "disallowMultipleLineStrings": true,
+  "disallowMultipleLineBreaks": true,
+  "disallowMixedSpacesAndTabs": true,
+  "disallowTrailingWhitespace": true,
+  "disallowKeywordsOnNewLine": ["else"],
+  "requireLineFeedAtFileEnd": true,
+  "safeContextKeyword": "self",
+  "validateJSDoc": {
+    "checkParamNames": true,
+    "checkRedundantParams": true,
+    "requireParamTypes": true
+  }
+}

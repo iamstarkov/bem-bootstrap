@@ -1,0 +1,13 @@
+{
+  "name": "bem-bootstrap",
+  "version": "0.0.0",
+  "description": "Bootstrap layer for bem",
+  "scripts": {},
+  "keywords": [],
+  "author": "matmuchrapna",
+  "license": "ISC",
+  "devDependencies": {},
+  "dependencies": {
+    "gulp": "^3.8.7"
+  }
+}
