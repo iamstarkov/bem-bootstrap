@@ -8,6 +8,7 @@
   "license": "ISC",
   "devDependencies": {},
   "dependencies": {
-    "gulp": "^3.8.7"
+    "gulp": "^3.8.7",
+    "bootstrap": "~3.2.0"
   }
 }
