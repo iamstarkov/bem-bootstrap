@@ -13,6 +13,10 @@ gulp.task('copy-variables', function() {
   return gulp.src([join(prefix, 'variables.less')]).pipe(gulp.dest('./core/variables/'));
 });
 
+gulp.task('copy-docs', function(cb) {
+  sequence(['copy-docs-yamlconfig', 'copy-docs-site'], cb);
+});
+
 gulp.task('copy-docs-yamlconfig', function() {
   return gulp.src('./node_modules/bootstrap/_config.yml').pipe(gulp.dest('./'));
 });
