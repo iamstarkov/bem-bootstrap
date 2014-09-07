@@ -63,5 +63,5 @@ gulp.task('copy-docs-site', function() {
 });
 
 gulp.task('compile-blocks', function() {
-  return gulp.src(['core/*g/*.less']).pipe(compile());
+  return gulp.src(['core/*/*.less']).pipe(compile());
 });
