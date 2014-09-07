@@ -9,6 +9,73 @@ var less = require('gulp-less');
 
 var prefix = 'node_modules/bootstrap/less'
 
+/**
+ * Copy all the stuff
+ */
+gulp.task('copy-less', function(cb) {
+  sequence([
+    // Settings
+    'copy-settings'
+  ], 'compile-blocks', cb)
+});
+
+/**
+ * Compiling blocks
+ */
+gulp.task('compile-blocks', function() {
+  return gulp.src(['settings/*/*.less']).pipe(compile());
+});
+
+
+/**
+ * # Settings section
+ */
+gulp.task('copy-settings', function(cb) {
+  sequence(['copy-variables', 'copy-mixins'], cb)
+});
+
+/**
+ * ## Variables
+ */
+gulp.task('copy-variables', function() {
+  return gulp.src([join(prefix, 'variables.less')]).pipe(destInLevel('settings'));
+});
+
+
+/**
+ * ## Mixins
+ */
+gulp.task('copy-mixins', function(cb) {
+  sequence(['copy-mixins-block', 'copy-mixins-itself'], cb);
+});
+
+gulp.task('copy-mixins-block', function() {
+  return gulp.src([join(prefix, 'mixins.less')]).pipe(destInLevel('settings'));
+});
+
+gulp.task('copy-mixins-itself', function() {
+  return gulp.src([join(prefix, 'mixins/**.less')]).pipe(gulp.dest('settings/mixins/mixins'));
+});
+
+
+/**
+ * Docs
+ */
+gulp.task('copy-docs', function(cb) {
+  sequence(['copy-docs-yamlconfig', 'copy-docs-site'], cb);
+});
+
+gulp.task('copy-docs-yamlconfig', function() {
+  return gulp.src('./node_modules/bootstrap/_config.yml').pipe(gulp.dest('./'));
+});
+
+gulp.task('copy-docs-site', function() {
+  return gulp.src('./node_modules/bootstrap/docs/**').pipe(gulp.dest('./docs/'));
+});
+
+/**
+ * Helpers
+ */
 var destInLevel = function(folder) {
   return through.obj(function(file, enc, cb) {
     var blockName = basename(file.path, '.less');
@@ -29,39 +96,3 @@ var compile = function(folder) {
       return cb();
     });
 }
-
-gulp.task('copy-less', function(cb) {
-  sequence(['copy-variables', 'copy-mixins'], 'compile-blocks', cb)
-});
-
-gulp.task('copy-variables', function() {
-  return gulp.src([join(prefix, 'variables.less')]).pipe(destInLevel('core'));
-});
-
-gulp.task('copy-mixins', function(cb) {
-  sequence(['copy-mixins-block', 'copy-mixins-itself'], cb);
-});
-
-gulp.task('copy-mixins-block', function() {
-  return gulp.src([join(prefix, 'mixins.less')]).pipe(destInLevel('core'));
-});
-
-gulp.task('copy-mixins-itself', function() {
-  return gulp.src([join(prefix, 'mixins/**.less')]).pipe(gulp.dest('core/mixins/mixins'));
-});
-
-gulp.task('copy-docs', function(cb) {
-  sequence(['copy-docs-yamlconfig', 'copy-docs-site'], cb);
-});
-
-gulp.task('copy-docs-yamlconfig', function() {
-  return gulp.src('./node_modules/bootstrap/_config.yml').pipe(gulp.dest('./'));
-});
-
-gulp.task('copy-docs-site', function() {
-  return gulp.src('./node_modules/bootstrap/docs/**').pipe(gulp.dest('./docs/'));
-});
-
-gulp.task('compile-blocks', function() {
-  return gulp.src(['core/*/*.less']).pipe(compile());
-});
