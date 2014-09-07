@@ -1,16 +1,29 @@
 'use strict';
 var gulp = require('gulp');
 var join = require('path').join;
+var basename = require('path').basename;
+var through = require('through2');
 var sequence = require('run-sequence');
 
 var prefix = 'node_modules/bootstrap/less'
+
+var destInLevel = function(folder) {
+  return through.obj(function(file, enc, cb) {
+    var blockName = basename(file.path, '.less');
+
+    gulp.src([file.path])
+      .pipe(gulp.dest(join(folder, blockName)))
+      .on('end', cb);
+  });
+}
 
 gulp.task('copy-less', function(cb) {
   sequence(['copy-variables'], cb)
 });
 
 gulp.task('copy-variables', function() {
-  return gulp.src([join(prefix, 'variables.less')]).pipe(gulp.dest('./core/variables/'));
+  return gulp.src([join(prefix, 'variables.less')])
+    .pipe(destInLevel('core'));
 });
 
 gulp.task('copy-docs', function(cb) {
