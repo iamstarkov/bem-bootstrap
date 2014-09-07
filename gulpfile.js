@@ -38,6 +38,18 @@ gulp.task('copy-variables', function() {
   return gulp.src([join(prefix, 'variables.less')]).pipe(destInLevel('core'));
 });
 
+gulp.task('copy-mixins', function(cb) {
+  sequence(['copy-mixins-block', 'copy-mixins-itself'], cb);
+});
+
+gulp.task('copy-mixins-block', function() {
+  return gulp.src([join(prefix, 'mixins.less')]).pipe(destInLevel('core'));
+});
+
+gulp.task('copy-mixins-itself', function() {
+  return gulp.src([join(prefix, 'mixins/**.less')]).pipe(gulp.dest('core/mixins/mixins'));
+});
+
 gulp.task('copy-docs', function(cb) {
   sequence(['copy-docs-yamlconfig', 'copy-docs-site'], cb);
 });
