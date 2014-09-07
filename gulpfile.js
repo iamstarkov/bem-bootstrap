@@ -31,7 +31,7 @@ var compile = function(folder) {
 }
 
 gulp.task('copy-less', function(cb) {
-  sequence(['copy-variables'], cb)
+  sequence(['copy-variables'], 'compile-blocks', cb)
 });
 
 gulp.task('copy-variables', function() {
