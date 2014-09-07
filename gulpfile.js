@@ -35,8 +35,7 @@ gulp.task('copy-less', function(cb) {
 });
 
 gulp.task('copy-variables', function() {
-  return gulp.src([join(prefix, 'variables.less')])
-    .pipe(destInLevel('core'));
+  return gulp.src([join(prefix, 'variables.less')]).pipe(destInLevel('core'));
 });
 
 gulp.task('copy-docs', function(cb) {
