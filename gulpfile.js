@@ -13,10 +13,7 @@ var prefix = 'node_modules/bootstrap/less'
  * Copy all the stuff
  */
 gulp.task('copy-less', function(cb) {
-  sequence([
-    // Settings
-    'copy-settings'
-  ], 'compile-blocks', cb)
+  sequence(['copy-settings'], 'compile-blocks', cb)
 });
 
 /**
@@ -31,31 +28,17 @@ gulp.task('compile-blocks', function() {
  * # Settings section
  */
 gulp.task('copy-settings', function(cb) {
-  sequence(['copy-variables', 'copy-mixins'], cb)
+  sequence(['copy-settings-blocks', 'copy-mixins'], cb)
 });
 
-/**
- * ## Variables
- */
-gulp.task('copy-variables', function() {
-  return gulp.src([join(prefix, 'variables.less')]).pipe(destInLevel('settings'));
+gulp.task('copy-settings-blocks', function() {
+  return gulp.src(['variables.less', 'mixins.less'].map(prefixIt)).pipe(destInLevel('settings'));
 });
 
-
-/**
- * ## Mixins
- */
-gulp.task('copy-mixins', function(cb) {
-  sequence(['copy-mixins-block', 'copy-mixins-itself'], cb);
+gulp.task('copy-mixins', function() {
+  return gulp.src(['mixins/**.less'].map(prefixIt)).pipe(gulp.dest('settings/mixins/mixins'));
 });
 
-gulp.task('copy-mixins-block', function() {
-  return gulp.src([join(prefix, 'mixins.less')]).pipe(destInLevel('settings'));
-});
-
-gulp.task('copy-mixins-itself', function() {
-  return gulp.src([join(prefix, 'mixins/**.less')]).pipe(gulp.dest('settings/mixins/mixins'));
-});
 
 
 /**
@@ -73,9 +56,14 @@ gulp.task('copy-docs-site', function() {
   return gulp.src('./node_modules/bootstrap/docs/**').pipe(gulp.dest('./docs/'));
 });
 
+
 /**
  * Helpers
  */
+var prefixIt = function(item) {
+  return join(prefix, item);
+};
+
 var destInLevel = function(folder) {
   return through.obj(function(file, enc, cb) {
     var blockName = basename(file.path, '.less');
