@@ -16,3 +16,7 @@ gulp.task('copy-variables', function() {
 gulp.task('copy-yamlconfig', function() {
   return gulp.src('./node_modules/bootstrap/_config.yml').pipe(gulp.dest('./'));
 });
+
+gulp.task('copy-docs-site', function() {
+  return gulp.src('./node_modules/bootstrap/docs/**').pipe(gulp.dest('./docs/'));
+});
