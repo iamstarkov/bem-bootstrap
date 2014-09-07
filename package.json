@@ -9,6 +9,7 @@
   "devDependencies": {},
   "dependencies": {
     "gulp": "^3.8.7",
-    "bootstrap": "~3.2.0"
+    "bootstrap": "~3.2.0",
+    "run-sequence": "~0.3.6"
   }
 }
