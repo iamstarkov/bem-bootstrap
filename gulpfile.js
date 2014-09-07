@@ -24,7 +24,7 @@ gulp.task('clean', function(cb) {
  * Copy all the stuff
  */
 gulp.task('copy', function(cb) {
-  sequence('clean', ['copy-less', 'copy-docs'], 'compile-blocks', cb);
+  sequence('clean', ['copy-less', 'copy-docs'], cb);
 });
 
 /**
