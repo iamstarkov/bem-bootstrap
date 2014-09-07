@@ -1,13 +1,11 @@
 'use strict';
 var gulp = require('gulp');
 var join = require('path').join;
-var basename = require('path').basename;
-var dirname = require('path').dirname;
-var through = require('through2');
 var sequence = require('run-sequence');
 var less = require('gulp-less');
 var replace = require('gulp-replace');
 var rename = require('gulp-rename');
+var header = require('gulp-header');
 var del = require('del');
 
 var levels = ['settings', 'reset', 'glyphicons'];
@@ -44,7 +42,14 @@ gulp.task('copy-less', function(cb) {
  */
 gulp.task('compile-blocks', function() {
   var postfix = function(item) { return join(item, '*/*.less'); };
-  return gulp.src(levels.slice(1).map(postfix)).pipe(compile());
+  return gulp.src(levels.slice(1).map(postfix), { base: process.cwd() })
+    .pipe(header([
+      '// Core variables and mixins',
+      '@import "../../settings/variables/variables.less";',
+      '@import "../../settings/mixins/mixins.less";'
+    ].join('\n')))
+    .pipe(less())
+    .pipe(gulp.dest('.'));
 });
 
 /**
@@ -105,34 +110,5 @@ gulp.task('copy-docs-site', function() {
 /**
  * Helpers
  */
-var prefix = function(item) {
-  return join('node_modules/bootstrap/less', item);
-};
-
-var compile = function() {
-  return through.obj(function(file, enc, cb) {
-    gulp.src(file.path)
-      .pipe(importSettings())
-      .pipe(less())
-      .pipe(gulp.dest(dirname(file.path)))
-      .on('end', cb);
-  });
-};
-
+var prefix = function(item) { return join('node_modules/bootstrap/less', item); };
 var prependFilename = function(path) { path.dirname += '/' + path.basename; };
-
-var importSettings = function() {
-  return through.obj(function(file, enc, cb) {
-    var contents = file.contents.toString('utf8');
-    var prefix = [
-      '// Core variables and mixins',
-      '@import "../../settings/variables/variables.less";',
-      '@import "../../settings/mixins/mixins.less";'
-    ].join('\n');
-
-    file.contents = new Buffer(prefix + '\n\n' + contents);
-
-    this.push(file);
-    return cb();
-  });
-};
