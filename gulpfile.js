@@ -8,12 +8,17 @@ var rename = require('gulp-rename');
 var header = require('gulp-header');
 var del = require('del');
 
-var levels = ['settings', 'reset', 'glyphicons'];
+var levels = [
+  'variables',
+  'mixins',
+  'normalize',
+  'print',
+  'glyphicons'
+];
 
 /**
  * Clean all
  */
-
 gulp.task('clean', function(cb) {
   del(levels.concat('fonts', 'docs', '_config.yml'), cb);
 });
@@ -29,12 +34,14 @@ gulp.task('copy', function(cb) {
  * Copy blocks
  */
 gulp.task('copy-less', function(cb) {
-  var copyTasks = [
-    'copy-settings',
-    'copy-reset',
+  var levelTasks = [
+    'copy-variables',
+    'copy-mixins',
+    'copy-normalize',
+    'copy-print',
     'copy-glyphicons'
   ];
-  sequence(copyTasks, 'compile-blocks', cb);
+  sequence('copy-fonts', levelTasks, 'compile-blocks', cb);
 });
 
 /**
@@ -44,30 +51,11 @@ gulp.task('compile-blocks', function() {
   var postfix = function(item) { return join(item, '*/*.less'); };
   return gulp.src(levels.slice(1).map(postfix), { base: process.cwd() })
     .pipe(header([
-      '// Core variables and mixins',
-      '@import "../../settings/variables/variables.less";',
-      '@import "../../settings/mixins/mixins.less";'
+      '@import "../../variables/variables/variables.less";',
+      '@import "../../mixins/mixins/mixins.less";'
     ].join('\n')))
     .pipe(less())
     .pipe(gulp.dest('.'));
-});
-
-/**
- * # Settings section
- */
-gulp.task('copy-settings', function(cb) {
-  sequence(['copy-settings-blocks', 'copy-mixins', 'copy-fonts'], cb);
-});
-
-gulp.task('copy-settings-blocks', function() {
-  return gulp.src(['variables.less', 'mixins.less'].map(prefix))
-    .pipe(replace('../fonts', '../../fonts'))
-    .pipe(rename(prependFilename))
-    .pipe(gulp.dest('settings'));
-});
-
-gulp.task('copy-mixins', function() {
-  return gulp.src(['mixins/**.less'].map(prefix)).pipe(gulp.dest('settings/mixins/mixins'));
 });
 
 gulp.task('copy-fonts', function() {
@@ -75,16 +63,48 @@ gulp.task('copy-fonts', function() {
 });
 
 /**
- * # Reset section
+ * Variables level
  */
-gulp.task('copy-reset', function() {
-  return gulp.src(['normalize.less', 'print.less'].map(prefix))
+gulp.task('copy-variables', function() {
+  return gulp.src(['variables.less'].map(prefix))
+    .pipe(replace('../fonts', '../../fonts'))
     .pipe(rename(prependFilename))
-    .pipe(gulp.dest('reset'));
+    .pipe(gulp.dest('variables'));
 });
 
 /**
- * # Glyph section
+ * Mixins level
+ */
+gulp.task('copy-mixins', ['copy-mixins-itself'], function() {
+    return gulp.src(['mixins.less'].map(prefix))
+      .pipe(rename(prependFilename))
+      .pipe(gulp.dest('mixins'));
+});
+
+gulp.task('copy-mixins-itself', function() {
+  return gulp.src(['mixins/**.less'].map(prefix)).pipe(gulp.dest('mixins/mixins/mixins'));
+});
+
+/**
+ * normalize level
+ */
+gulp.task('copy-normalize', function() {
+  return gulp.src(['normalize.less'].map(prefix))
+    .pipe(rename(prependFilename))
+    .pipe(gulp.dest('normalize'));
+});
+
+/**
+ * Print level
+ */
+gulp.task('copy-print', function() {
+  return gulp.src(['print.less'].map(prefix))
+    .pipe(rename(prependFilename))
+    .pipe(gulp.dest('print'));
+});
+
+/**
+ * Glyph level
  */
 gulp.task('copy-glyphicons', function() {
   return gulp.src(['glyphicons.less'].map(prefix))
