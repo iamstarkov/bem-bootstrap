@@ -24,30 +24,34 @@ gulp.task('clean', function(cb) {
  * Copy all the stuff
  */
 gulp.task('copy', function(cb) {
-  sequence('clean', ['copy-less', 'copy-docs'], 'compile-blocks', cb)
+  sequence('clean', ['copy-less', 'copy-docs'], 'compile-blocks', cb);
 });
 
 /**
  * Copy blocks
  */
 gulp.task('copy-less', function(cb) {
-  sequence(['copy-settings', 'copy-reset', 'copy-glyphicons'], 'compile-blocks', cb)
+  var copyTasks = [
+    'copy-settings',
+    'copy-reset',
+    'copy-glyphicons'
+  ];
+  sequence(copyTasks, 'compile-blocks', cb);
 });
 
 /**
  * Compiling blocks
  */
 gulp.task('compile-blocks', function() {
-  var postfix = function(item) { return join(item, '*/*.less'); }
+  var postfix = function(item) { return join(item, '*/*.less'); };
   return gulp.src(levels.slice(1).map(postfix)).pipe(compile());
 });
-
 
 /**
  * # Settings section
  */
 gulp.task('copy-settings', function(cb) {
-  sequence(['copy-settings-blocks', 'copy-mixins', 'copy-fonts'], cb)
+  sequence(['copy-settings-blocks', 'copy-mixins', 'copy-fonts'], cb);
 });
 
 gulp.task('copy-settings-blocks', function() {
@@ -65,21 +69,19 @@ gulp.task('copy-fonts', function() {
   return gulp.src(['node_modules/bootstrap/fonts/**']).pipe(gulp.dest('fonts'));
 });
 
-
 /**
  * # Reset section
  */
-gulp.task('copy-reset', function(cb) {
+gulp.task('copy-reset', function() {
   return gulp.src(['normalize.less', 'print.less'].map(prefix))
     .pipe(rename(prependFilename))
     .pipe(gulp.dest('reset'));
 });
 
-
 /**
  * # Glyph section
  */
-gulp.task('copy-glyphicons', function(cb) {
+gulp.task('copy-glyphicons', function() {
   return gulp.src(['glyphicons.less'].map(prefix))
     .pipe(rename(prependFilename))
     .pipe(gulp.dest('glyphicons'));
@@ -100,7 +102,6 @@ gulp.task('copy-docs-site', function() {
   return gulp.src('./node_modules/bootstrap/docs/**').pipe(gulp.dest('./docs/'));
 });
 
-
 /**
  * Helpers
  */
@@ -108,7 +109,7 @@ var prefix = function(item) {
   return join('node_modules/bootstrap/less', item);
 };
 
-var compile = function(folder) {
+var compile = function() {
   return through.obj(function(file, enc, cb) {
     gulp.src(file.path)
       .pipe(importSettings())
@@ -134,14 +135,4 @@ var importSettings = function() {
     this.push(file);
     return cb();
   });
-}
-
-var debug = function() {
-  return through.obj(function(file, enc, cb) {
-    console.log('Processing ' + file.relative);
-    console.log(file.contents.toString('utf8'));
-
-    this.push(file);
-    return cb();
-  });
-}
+};
