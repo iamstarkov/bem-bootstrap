@@ -139,6 +139,16 @@ gulp.task('copy-grid', function() {
 
 gulp.task('copy-buttons', function() {
   return gulp.src(['buttons.less'].map(prefix))
+    // _state
+    .pipe(replace(/\&\.(active|disabled)/g, '&.btn_state_$1'))
+    // _size
+    .pipe(replace(/\.btn-(lg|sm|xs)/g, '.btn_size_$1'))
+    // _theme
+    .pipe(replace(/\.btn-(default|primary|success|info|warning|danger)/g, '.btn_theme_$1'))
+    // _link_true
+    .pipe(replace(/\.btn-link/g, '.btn_link_true'))
+    // _block_true
+    .pipe(replace(/\.btn-block/g, '.btn_block_true'))
     .pipe(rename(prependFilename))
     .pipe(gulp.dest('core-css'));
 });
