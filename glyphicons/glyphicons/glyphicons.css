@@ -614,3 +614,11 @@
 .glyphicon_item_tree-deciduous:before {
   content: "\e200";
 }
+.clearfix:before,
+.clearfix:after {
+  content: " ";
+  display: table;
+}
+.clearfix:after {
+  clear: both;
+}

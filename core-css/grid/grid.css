@@ -19,7 +19,7 @@
     width: 1170px;
   }
 }
-.grid_fluid_true {
+.grid-fluid {
   margin-right: auto;
   margin-left: auto;
   padding-left: 15px;
@@ -664,4 +664,21 @@
   .grid__cell-lg_offset_0 {
     margin-left: 0%;
   }
+}
+.clearfix:before,
+.clearfix:after,
+.grid:before,
+.grid:after,
+.grid-fluid:before,
+.grid-fluid:after,
+.grid__row:before,
+.grid__row:after {
+  content: " ";
+  display: table;
+}
+.clearfix:after,
+.grid:after,
+.grid-fluid:after,
+.grid__row:after {
+  clear: both;
 }
