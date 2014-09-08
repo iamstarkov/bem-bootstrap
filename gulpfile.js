@@ -109,6 +109,7 @@ gulp.task('copy-print', function() {
 gulp.task('copy-glyphicons', function() {
   return gulp.src(['glyphicons.less'].map(prefix))
     .pipe(rename(prependFilename))
+    .pipe(replace(/.glyphicon-/g, '.glyphicon_item_'))
     .pipe(gulp.dest('glyphicons'));
 });
 
