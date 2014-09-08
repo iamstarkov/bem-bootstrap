@@ -8,7 +8,7 @@
 // Set the container width, and override it for fixed navbars in media queries.
 
 .grid {
-  .container-fixed();
+  .grid-fixed();
 
   @media (min-width: @screen-sm-min) {
     width: @container-sm;
@@ -27,8 +27,8 @@
 // Utilizes the mixin meant for fixed width containers, but without any defined
 // width for fluid, full width layouts.
 
-.grid_fluid_true {
-  .container-fixed();
+.grid-fluid {
+  .grid-fixed();
 }
 
 
