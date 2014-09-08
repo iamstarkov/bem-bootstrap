@@ -84,7 +84,13 @@ gulp.task('copy-mixins', ['copy-mixins-itself'], function() {
 });
 
 gulp.task('copy-mixins-itself', function() {
-  return gulp.src(['mixins/**.less'].map(prefix)).pipe(gulp.dest('mixins/mixins/mixins'));
+  return gulp.src(['mixins/**.less'].map(prefix))
+    // grid
+    .pipe(replace(/\.col-(xs|sm|md|lg)-@{index}/g, '.grid__cell-$1_size_@{index}'))
+    .pipe(replace(/\.col-@{class}-@{index}/g, '.grid__cell-@{class}_size_@{index}'))
+    .pipe(replace(/\.col-@{class}-(push|pull|offset)-@{index}/g, '.grid__cell-@{class}_$1_@{index}'))
+    .pipe(replace(/\.col-@{class}-(push|pull)-0/g, '.grid__cell-@{class}_$1_0'))
+    .pipe(gulp.dest('mixins/mixins/mixins'));
 });
 
 /**
@@ -133,6 +139,12 @@ gulp.task('copy-core-css', function(cb) {
 
 gulp.task('copy-grid', function() {
   return gulp.src(['grid.less'].map(prefix))
+    // grid
+    .pipe(replace(/\.container {/g, '.grid {'))
+    // _fluid
+    .pipe(replace(/\.container-fluid/g, '.grid_fluid_true'))
+    // __row
+    .pipe(replace(/\.row/g, '.grid__row'))
     .pipe(rename(prependFilename))
     .pipe(gulp.dest('core-css'));
 });
