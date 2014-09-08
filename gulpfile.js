@@ -13,7 +13,8 @@ var levels = [
   'mixins',
   'normalize',
   'print',
-  'glyphicons'
+  'glyphicons',
+  'core-css'
 ];
 
 /**
@@ -39,7 +40,8 @@ gulp.task('copy-less', function(cb) {
     'copy-mixins',
     'copy-normalize',
     'copy-print',
-    'copy-glyphicons'
+    'copy-glyphicons',
+    'copy-core-css'
   ];
   sequence('copy-fonts', levelTasks, 'compile-blocks', cb);
 });
@@ -49,7 +51,7 @@ gulp.task('copy-less', function(cb) {
  */
 gulp.task('compile-blocks', function() {
   var postfix = function(item) { return join(item, '*/*.less'); };
-  return gulp.src(levels.slice(1).map(postfix), { base: process.cwd() })
+  return gulp.src(levels.slice(2).map(postfix), { base: process.cwd() })
     .pipe(header([
       '@import "../../variables/variables/variables.less";',
       '@import "../../mixins/mixins/mixins.less";'
@@ -111,6 +113,34 @@ gulp.task('copy-glyphicons', function() {
     .pipe(rename(prependFilename))
     .pipe(replace(/.glyphicon-/g, '.glyphicon_item_'))
     .pipe(gulp.dest('glyphicons'));
+});
+
+/**
+ * Core CSS level
+ *
+ * // Core CSS
+ * @import "scaffolding.less";
+ * @import "type.less";
+ * @import "code.less";
+ * @import "grid.less";
+ * @import "tables.less";
+ * @import "forms.less";
+ * @import "buttons.less";
+ */
+gulp.task('copy-core-css', function(cb) {
+  sequence('copy-grid', 'copy-buttons', cb);
+});
+
+gulp.task('copy-grid', function() {
+  return gulp.src(['grid.less'].map(prefix))
+    .pipe(rename(prependFilename))
+    .pipe(gulp.dest('core-css'));
+});
+
+gulp.task('copy-buttons', function() {
+  return gulp.src(['buttons.less'].map(prefix))
+    .pipe(rename(prependFilename))
+    .pipe(gulp.dest('core-css'));
 });
 
 /**
