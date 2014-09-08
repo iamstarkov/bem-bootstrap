@@ -6,6 +6,7 @@ var less = require('gulp-less');
 var replace = require('gulp-replace');
 var rename = require('gulp-rename');
 var header = require('gulp-header');
+var footer = require('gulp-footer');
 var debug = require('gulp-debug');
 var del = require('del');
 var through = require('through2');
@@ -17,7 +18,8 @@ var levels = [
   'normalize',
   'print',
   'glyphicons',
-  'core-css'
+  'core-css',
+  'utils'
 ];
 
 /**
@@ -44,7 +46,8 @@ gulp.task('copy-less', function(cb) {
     'copy-normalize',
     'copy-print',
     'copy-glyphicons',
-    'copy-core-css'
+    'copy-core-css',
+    'copy-utils'
   ];
   sequence('copy-fonts', levelTasks, 'compile-blocks', cb);
 });
@@ -59,6 +62,8 @@ gulp.task('compile-blocks', function() {
       '@import "../../variables/variables/variables.less";',
       '@import "../../mixins/mixins/mixins.less";'
     ].join('\n')))
+    .pipe(footer('.clearfix { .clearfix(); }'))
+    .pipe(debug())
     .pipe(less())
     .pipe(gulp.dest('.'));
 });
@@ -81,14 +86,15 @@ gulp.task('copy-variables', function() {
  * Mixins level
  */
 gulp.task('copy-mixins', ['copy-mixins-itself'], function() {
-    return gulp.src(['mixins.less'].map(prefix))
-      .pipe(rename(prependFilename))
-      .pipe(gulp.dest('mixins'));
+  return gulp.src(['mixins.less'].map(prefix))
+    .pipe(rename(prependFilename))
+    .pipe(gulp.dest('mixins'));
 });
 
 gulp.task('copy-mixins-itself', function() {
   return gulp.src(['mixins/**.less'].map(prefix))
     // grid
+    .pipe(replace(/\.container-fixed/g, '.grid-fixed'))
     .pipe(replace(/\.col-(xs|sm|md|lg)-@{index}/g, '.grid__cell-$1_size_@{index}'))
     .pipe(replace(/\.col-@{class}-@{index}/g, '.grid__cell-@{class}_size_@{index}'))
     .pipe(replace(/\.col-@{class}-(push|pull|offset)-@{index}/g, '.grid__cell-@{class}_$1_@{index}'))
@@ -131,10 +137,10 @@ gulp.task('copy-glyphicons', function() {
  * @import "scaffolding.less";
  * @import "type.less";
  * @import "code.less";
- * @import "grid.less"; DONE
+ * @import "grid.less";
  * @import "tables.less";
  * @import "forms.less";
- * @import "buttons.less"; DONE
+ * @import "buttons.less";
  */
 gulp.task('copy-core-css', function(cb) {
   sequence('copy-scaffolding', 'copy-grid', 'copy-buttons', cb);
@@ -151,7 +157,7 @@ gulp.task('copy-scaffolding', function() {
 gulp.task('copy-grid', function() {
   return gulp.src(['grid.less'].map(prefix))
     // grid
-    .pipe(replace(/\.container {/g, '.grid {'))
+    .pipe(replace(/\.container/g, '.grid'))
     // _fluid
     .pipe(replace(/\.container-fluid/g, '.grid_fluid_true'))
     // __row
@@ -174,6 +180,15 @@ gulp.task('copy-buttons', function() {
     .pipe(replace(/\.btn-block/g, '.btn_block_true'))
     .pipe(rename(prependFilename))
     .pipe(gulp.dest('core-css'));
+});
+
+/**
+ * Utils level
+ */
+gulp.task('copy-utils', function() {
+  return gulp.src(['utilities.less', 'responsive-utilities.less'].map(prefix))
+    .pipe(rename(prependFilename))
+    .pipe(gulp.dest('utils'));
 });
 
 /**
@@ -228,3 +243,10 @@ var post = function() {
     return cb();
   });
 };
+
+
+gulp.task('test', function() {
+  return gulp.src('test/one.less')
+    .pipe(less())
+    .pipe(gulp.dest('test'));
+});

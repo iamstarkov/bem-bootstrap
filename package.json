@@ -17,6 +17,8 @@
     "gulp-rename": "~1.2.0",
     "gulp-header": "~1.0.5",
     "through2": "~0.6.1",
-    "gulp-debug": "~1.0.1"
+    "gulp-debug": "~1.0.1",
+    "gulp-footer": "~1.0.5",
+    "gulp-if": "~1.2.4"
   }
 }
