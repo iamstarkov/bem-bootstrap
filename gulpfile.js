@@ -6,11 +6,14 @@ var less = require('gulp-less');
 var replace = require('gulp-replace');
 var rename = require('gulp-rename');
 var header = require('gulp-header');
+var debug = require('gulp-debug');
 var del = require('del');
+var through = require('through2');
+var gonzales = require('gonzales-pe');
 
 var levels = [
-  'variables',
-  'mixins',
+  'variables', // less-only
+  'mixins', // less-only
   'normalize',
   'print',
   'glyphicons',
@@ -128,13 +131,21 @@ gulp.task('copy-glyphicons', function() {
  * @import "scaffolding.less";
  * @import "type.less";
  * @import "code.less";
- * @import "grid.less";
+ * @import "grid.less"; DONE
  * @import "tables.less";
  * @import "forms.less";
- * @import "buttons.less";
+ * @import "buttons.less"; DONE
  */
 gulp.task('copy-core-css', function(cb) {
-  sequence('copy-grid', 'copy-buttons', cb);
+  sequence('copy-scaffolding', 'copy-grid', 'copy-buttons', cb);
+});
+
+gulp.task('copy-scaffolding', function() {
+  return gulp.src(['scaffolding.less'].map(prefix))
+    .pipe(debug())
+    .pipe(post())
+    .pipe(rename(prependFilename))
+    .pipe(gulp.dest('core-css'));
 });
 
 gulp.task('copy-grid', function() {
@@ -185,3 +196,35 @@ gulp.task('copy-docs-site', function() {
  */
 var prefix = function(item) { return join('node_modules/bootstrap/less', item); };
 var prependFilename = function(path) { path.dirname += '/' + path.basename; };
+
+var post = function() {
+  return through.obj(function(file, enc, cb) {
+
+    var contents = file.contents.toString('utf8');
+
+    var ast = gonzales.srcToAST({
+      src: contents,
+      syntax: 'less',
+      // rule: 'selector'
+      rule: 'ruleset'
+    });
+
+    // console.log(ast);
+
+    ast.forEach(function(node) {
+      console.log('node');
+      console.log(node);
+    });
+    // console.log(gonzales.astToString(ast));
+
+    /*
+    var result = contenter.process(contents).css;
+    // file.contents = new Buffer(result);
+    */
+
+    file.contents = new Buffer(contents);
+
+    this.push(file);
+    return cb();
+  });
+};
