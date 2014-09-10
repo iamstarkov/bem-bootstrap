@@ -18,8 +18,7 @@ var levels = [
   'normalize',
   'print',
   'glyphicons',
-  'core-css',
-  'utils'
+  'core-css'
 ];
 
 /**
@@ -46,8 +45,7 @@ gulp.task('copy-less', function(cb) {
     'copy-normalize',
     'copy-print',
     'copy-glyphicons',
-    'copy-core-css',
-    'copy-utils'
+    'copy-core-css'
   ];
   sequence('copy-fonts', levelTasks, 'compile-blocks', cb);
 });
@@ -62,8 +60,6 @@ gulp.task('compile-blocks', function() {
       '@import "../../variables/variables/variables.less";',
       '@import "../../mixins/mixins/mixins.less";'
     ].join('\n')))
-    .pipe(footer('.clearfix { .clearfix(); }'))
-    .pipe(debug())
     .pipe(less())
     .pipe(gulp.dest('.'));
 });
@@ -148,8 +144,6 @@ gulp.task('copy-core-css', function(cb) {
 
 gulp.task('copy-scaffolding', function() {
   return gulp.src(['scaffolding.less'].map(prefix))
-    .pipe(debug())
-    .pipe(post())
     .pipe(rename(prependFilename))
     .pipe(gulp.dest('core-css'));
 });
@@ -180,15 +174,6 @@ gulp.task('copy-buttons', function() {
     .pipe(replace(/\.btn-block/g, '.btn_block_true'))
     .pipe(rename(prependFilename))
     .pipe(gulp.dest('core-css'));
-});
-
-/**
- * Utils level
- */
-gulp.task('copy-utils', function() {
-  return gulp.src(['utilities.less', 'responsive-utilities.less'].map(prefix))
-    .pipe(rename(prependFilename))
-    .pipe(gulp.dest('utils'));
 });
 
 /**
