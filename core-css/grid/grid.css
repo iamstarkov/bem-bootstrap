@@ -4,6 +4,14 @@
   padding-left: 15px;
   padding-right: 15px;
 }
+.grid:before,
+.grid:after {
+  content: " ";
+  display: table;
+}
+.grid:after {
+  clear: both;
+}
 @media (min-width: 768px) {
   .grid {
     width: 750px;
@@ -25,9 +33,25 @@
   padding-left: 15px;
   padding-right: 15px;
 }
+.grid-fluid:before,
+.grid-fluid:after {
+  content: " ";
+  display: table;
+}
+.grid-fluid:after {
+  clear: both;
+}
 .grid__row {
   margin-left: -15px;
   margin-right: -15px;
+}
+.grid__row:before,
+.grid__row:after {
+  content: " ";
+  display: table;
+}
+.grid__row:after {
+  clear: both;
 }
 .grid__cell-xs_size_1, .grid__cell-sm_size_1, .grid__cell-md_size_1, .grid__cell-lg_size_1, .grid__cell-xs_size_2, .grid__cell-sm_size_2, .grid__cell-md_size_2, .grid__cell-lg_size_2, .grid__cell-xs_size_3, .grid__cell-sm_size_3, .grid__cell-md_size_3, .grid__cell-lg_size_3, .grid__cell-xs_size_4, .grid__cell-sm_size_4, .grid__cell-md_size_4, .grid__cell-lg_size_4, .grid__cell-xs_size_5, .grid__cell-sm_size_5, .grid__cell-md_size_5, .grid__cell-lg_size_5, .grid__cell-xs_size_6, .grid__cell-sm_size_6, .grid__cell-md_size_6, .grid__cell-lg_size_6, .grid__cell-xs_size_7, .grid__cell-sm_size_7, .grid__cell-md_size_7, .grid__cell-lg_size_7, .grid__cell-xs_size_8, .grid__cell-sm_size_8, .grid__cell-md_size_8, .grid__cell-lg_size_8, .grid__cell-xs_size_9, .grid__cell-sm_size_9, .grid__cell-md_size_9, .grid__cell-lg_size_9, .grid__cell-xs_size_10, .grid__cell-sm_size_10, .grid__cell-md_size_10, .grid__cell-lg_size_10, .grid__cell-xs_size_11, .grid__cell-sm_size_11, .grid__cell-md_size_11, .grid__cell-lg_size_11, .grid__cell-xs_size_12, .grid__cell-sm_size_12, .grid__cell-md_size_12, .grid__cell-lg_size_12 {
   position: relative;
@@ -664,21 +688,4 @@
   .grid__cell-lg_offset_0 {
     margin-left: 0%;
   }
-}
-.clearfix:before,
-.clearfix:after,
-.grid:before,
-.grid:after,
-.grid-fluid:before,
-.grid-fluid:after,
-.grid__row:before,
-.grid__row:after {
-  content: " ";
-  display: table;
-}
-.clearfix:after,
-.grid:after,
-.grid-fluid:after,
-.grid__row:after {
-  clear: both;
 }

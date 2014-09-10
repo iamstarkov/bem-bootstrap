@@ -355,11 +355,3 @@ input[type="reset"].btn_block_true,
 input[type="button"].btn_block_true {
   width: 100%;
 }
-.clearfix:before,
-.clearfix:after {
-  content: " ";
-  display: table;
-}
-.clearfix:after {
-  clear: both;
-}

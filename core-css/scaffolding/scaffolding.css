@@ -99,11 +99,3 @@ hr {
   overflow: visible;
   clip: auto;
 }
-.clearfix:before,
-.clearfix:after {
-  content: " ";
-  display: table;
-}
-.clearfix:after {
-  clear: both;
-}

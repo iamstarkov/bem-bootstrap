@@ -89,6 +89,8 @@ gulp.task('copy-mixins', ['copy-mixins-itself'], function() {
 
 gulp.task('copy-mixins-itself', function() {
   return gulp.src(['mixins/**.less'].map(prefix))
+    // clearfix fix
+    .pipe(replace('&:extend(.clearfix all);', '.clearfix()'))
     // grid
     .pipe(replace(/\.container-fixed/g, '.grid-fixed'))
     .pipe(replace(/\.col-(xs|sm|md|lg)-@{index}/g, '.grid__cell-$1_size_@{index}'))
