@@ -20,6 +20,7 @@ var levels = [
   'normalize',
   'print',
   'glyphicons',
+  'scaffolding',
   'core-css'
 ];
 
@@ -47,6 +48,7 @@ gulp.task('copy-less', function(cb) {
     'copy-normalize',
     'copy-print',
     'copy-glyphicons',
+    'copy-scaffolding',
     'copy-core-css'
   ];
   sequence('copy-fonts', levelTasks, 'compile-blocks', cb);
@@ -130,6 +132,7 @@ gulp.task('copy-glyphicons', function() {
     .pipe(gulp.dest('glyphicons'));
 });
 
+
 /**
  * Core CSS level
  *
@@ -142,10 +145,8 @@ gulp.task('copy-glyphicons', function() {
  * @import "forms.less";
  * @import "buttons.less";
  */
-gulp.task('copy-core-css', function(cb) {
-  sequence('copy-scaffolding', 'copy-grid', 'copy-buttons', cb);
-});
 
+// scaffolding should 100% be in upper level
 gulp.task('copy-scaffolding', function() {
 
   return gulp.src(['scaffolding.less'].map(prefix))
@@ -165,7 +166,11 @@ gulp.task('copy-scaffolding', function() {
     .pipe(replace(/\.sr-only-focusable {[\s\S]*}/g, ''))
 
     .pipe(rename(prependFilename))
-    .pipe(gulp.dest('core-css'));
+    .pipe(gulp.dest('scaffolding'));
+});
+
+gulp.task('copy-core-css', function(cb) {
+  sequence('copy-grid', 'copy-buttons', cb);
 });
 
 gulp.task('copy-grid', function() {
