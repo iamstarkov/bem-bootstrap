@@ -22,7 +22,7 @@ var levels = [
   'glyphicons',
   'scaffolding',
   'core-css'
-];
+].map(function(item) { return path.join('levels', item); });
 
 /**
  * Clean all
@@ -77,9 +77,9 @@ gulp.task('copy-fonts', function() {
  */
 gulp.task('copy-variables', function() {
   return gulp.src(['variables.less'].map(prefix))
-    .pipe(replace('../fonts', '../../fonts'))
+    .pipe(replace('../fonts', '../../../fonts'))
     .pipe(rename(prependFilename))
-    .pipe(gulp.dest('variables'));
+    .pipe(gulp.dest('levels/variables'));
 });
 
 /**
@@ -88,7 +88,7 @@ gulp.task('copy-variables', function() {
 gulp.task('copy-mixins', ['copy-mixins-itself'], function() {
   return gulp.src(['mixins.less'].map(prefix))
     .pipe(rename(prependFilename))
-    .pipe(gulp.dest('mixins'));
+    .pipe(gulp.dest('levels/mixins'));
 });
 
 gulp.task('copy-mixins-itself', function() {
@@ -101,7 +101,7 @@ gulp.task('copy-mixins-itself', function() {
     .pipe(replace(/\.col-@{class}-@{index}/g, '.grid__cell-@{class}_size_@{index}'))
     .pipe(replace(/\.col-@{class}-(push|pull|offset)-@{index}/g, '.grid__cell-@{class}_$1_@{index}'))
     .pipe(replace(/\.col-@{class}-(push|pull)-0/g, '.grid__cell-@{class}_$1_0'))
-    .pipe(gulp.dest('mixins/mixins/mixins'));
+    .pipe(gulp.dest('levels/mixins/mixins/mixins'));
 });
 
 /**
@@ -110,7 +110,7 @@ gulp.task('copy-mixins-itself', function() {
 gulp.task('copy-normalize', function() {
   return gulp.src(['normalize.less'].map(prefix))
     .pipe(rename(prependFilename))
-    .pipe(gulp.dest('normalize'));
+    .pipe(gulp.dest('levels/normalize'));
 });
 
 /**
@@ -119,7 +119,7 @@ gulp.task('copy-normalize', function() {
 gulp.task('copy-print', function() {
   return gulp.src(['print.less'].map(prefix))
     .pipe(rename(prependFilename))
-    .pipe(gulp.dest('print'));
+    .pipe(gulp.dest('levels/print'));
 });
 
 /**
@@ -129,9 +129,8 @@ gulp.task('copy-glyphicons', function() {
   return gulp.src(['glyphicons.less'].map(prefix))
     .pipe(rename(prependFilename))
     .pipe(replace(/.glyphicon-/g, '.glyphicon_item_'))
-    .pipe(gulp.dest('glyphicons'));
+    .pipe(gulp.dest('levels/glyphicons'));
 });
-
 
 /**
  * Core CSS level
@@ -166,7 +165,7 @@ gulp.task('copy-scaffolding', function() {
     .pipe(replace(/\.sr-only-focusable {[\s\S]*}/g, ''))
 
     .pipe(rename(prependFilename))
-    .pipe(gulp.dest('scaffolding'));
+    .pipe(gulp.dest('levels/scaffolding'));
 });
 
 gulp.task('copy-core-css', function(cb) {
@@ -182,7 +181,7 @@ gulp.task('copy-grid', function() {
     // __row
     .pipe(replace(/\.row/g, '.grid__row'))
     .pipe(rename(prependFilename))
-    .pipe(gulp.dest('core-css'));
+    .pipe(gulp.dest('levels/core-css'));
 });
 
 gulp.task('copy-buttons', function() {
@@ -198,7 +197,7 @@ gulp.task('copy-buttons', function() {
     // _block_true
     .pipe(replace(/\.btn-block/g, '.btn_block_true'))
     .pipe(rename(prependFilename))
-    .pipe(gulp.dest('core-css'));
+    .pipe(gulp.dest('levels/core-css'));
 });
 
 /**
@@ -224,7 +223,7 @@ var prependFilename = function(path) { path.dirname += '/' + path.basename; };
 var prependRawText = function(item) { return '.raw-text ' + item; };
 var extractSelector = function(reg, level, block, transform) {
   transform = transform || function(item) { return item; };
-  var folder = path.join(level, block);
+  var folder = path.join('levels', level, block);
   var filename = path.join(folder, block + '.less');
 
   return through.obj(function(file, enc, cb) {
