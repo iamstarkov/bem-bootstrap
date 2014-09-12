@@ -10,7 +10,9 @@ var footer = require('gulp-footer');
 var debug = require('gulp-debug');
 var del = require('del');
 var through = require('through2');
-var gonzales = require('gonzales-pe');
+var path = require('path');
+var fs = require('fs');
+var vfs = require('vow-fs');
 
 var levels = [
   'variables', // less-only
@@ -145,7 +147,23 @@ gulp.task('copy-core-css', function(cb) {
 });
 
 gulp.task('copy-scaffolding', function() {
+
   return gulp.src(['scaffolding.less'].map(prefix))
+
+    .pipe(replace(/\.img-(responsive|rounded|thumbnail|circle) {/g, '.img_$1_true {'))
+    .pipe(extractSelector(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g, 'core-css', 'img'))
+    .pipe(replace(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g, ''))
+
+    .pipe(extractSelector(/\hr[\s\S]*?}/g, 'core-css', 'raw-text', prependRawText))
+    .pipe(replace(/\hr {/g, '.hr {'))
+    .pipe(extractSelector(/\.hr[\s\S]*?}/g, 'core-css', 'hr'))
+    .pipe(replace(/\.hr[\s\S]*?}/g, ''))
+
+    .pipe(extractSelector(/\.sr-only {[\s\S]*?}/g, 'core-css', 'sr-only'))
+    .pipe(replace(/\.sr-only {[\s\S]*?}/g, ''))
+    .pipe(extractSelector(/\.sr-only-focusable {[\s\S]*}/g, 'core-css', 'sr-only'))
+    .pipe(replace(/\.sr-only-focusable {[\s\S]*}/g, ''))
+
     .pipe(rename(prependFilename))
     .pipe(gulp.dest('core-css'));
 });
@@ -198,42 +216,27 @@ gulp.task('copy-docs-site', function() {
  */
 var prefix = function(item) { return join('node_modules/bootstrap/less', item); };
 var prependFilename = function(path) { path.dirname += '/' + path.basename; };
+var prependRawText = function(item) { return '.raw-text ' + item; };
+var extractSelector = function(reg, level, block, transform) {
+  transform = transform || function(item) { return item; };
+  var folder = path.join(level, block);
+  var filename = path.join(folder, block + '.less');
 
-var post = function() {
   return through.obj(function(file, enc, cb) {
 
     var contents = file.contents.toString('utf8');
+    var res = contents.match(reg);
+    console.log('res', res);
 
-    var ast = gonzales.srcToAST({
-      src: contents,
-      syntax: 'less',
-      // rule: 'selector'
-      rule: 'ruleset'
+    vfs.makeDir(folder).then(function() {
+      if (res && res.length > 0) {
+        res.forEach(function(item) {
+          vfs.append(filename, transform(item) + '\n').then(function() { console.log(filename + ' appended'); });
+        });
+      }
     });
-
-    // console.log(ast);
-
-    ast.forEach(function(node) {
-      console.log('node');
-      console.log(node);
-    });
-    // console.log(gonzales.astToString(ast));
-
-    /*
-    var result = contenter.process(contents).css;
-    // file.contents = new Buffer(result);
-    */
-
-    file.contents = new Buffer(contents);
 
     this.push(file);
     return cb();
   });
 };
-
-
-gulp.task('test', function() {
-  return gulp.src('test/one.less')
-    .pipe(less())
-    .pipe(gulp.dest('test'));
-});
