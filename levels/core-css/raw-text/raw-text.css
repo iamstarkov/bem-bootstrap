@@ -4,3 +4,76 @@
   border: 0;
   border-top: 1px solid #eeeeee;
 }
+.raw-text h1,
+.raw-text h2,
+.raw-text h3,
+.raw-text h4,
+.raw-text h5,
+.raw-text h6 {
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.1;
+  color: inherit;
+}
+.raw-text h1 small,
+.raw-text h2 small,
+.raw-text h3 small,
+.raw-text h4 small,
+.raw-text h5 small,
+.raw-text h6 small,
+.raw-text h1 .small,
+.raw-text h2 .small,
+.raw-text h3 .small,
+.raw-text h4 .small,
+.raw-text h5 .small,
+.raw-text h6 .small {
+  font-weight: normal;
+  line-height: 1;
+  color: #777777;
+}
+.raw-text h1,
+.raw-text h2,
+.raw-text h3 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+.raw-text h1 small,
+.raw-text h2 small,
+.raw-text h3 small,
+.raw-text h1 .small,
+.raw-text h2 .small,
+.raw-text h3 .small {
+  font-size: 65%;
+}
+.raw-text h4,
+.raw-text h5,
+.raw-text h6 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.raw-text h4 small,
+.raw-text h5 small,
+.raw-text h6 small,
+.raw-text h4 .small,
+.raw-text h5 .small,
+.raw-text h6 .small {
+  font-size: 75%;
+}
+.raw-text h1 {
+  font-size: 36px;
+}
+.raw-text h2 {
+  font-size: 30px;
+}
+.raw-text h3 {
+  font-size: 24px;
+}
+.raw-text h4 {
+  font-size: 18px;
+}
+.raw-text h5 {
+  font-size: 14px;
+}
+.raw-text h6 {
+  font-size: 12px;
+}
