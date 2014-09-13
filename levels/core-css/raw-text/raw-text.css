@@ -77,3 +77,6 @@
 .raw-text h6 {
   font-size: 12px;
 }
+.raw-text p {
+  margin: 0 0 10px;
+}
