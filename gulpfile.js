@@ -7,6 +7,7 @@ var replace = require('gulp-replace');
 var rename = require('gulp-rename');
 var header = require('gulp-header');
 var footer = require('gulp-footer');
+var wait = require('gulp-wait');
 var debug = require('gulp-debug');
 var del = require('del');
 var through = require('through2');
@@ -28,7 +29,7 @@ var levels = [
  * Clean all
  */
 gulp.task('clean', function(cb) {
-  del(levels.concat('fonts', 'docs', '_config.yml'), cb);
+  del(['levels', 'fonts', 'docs', '_config.yml'], cb);
 });
 
 /**
@@ -51,7 +52,9 @@ gulp.task('copy-less', function(cb) {
     'copy-scaffolding',
     'copy-core-css'
   ];
-  sequence('copy-fonts', levelTasks, 'compile-blocks', cb);
+  sequence('copy-fonts',
+    levelTasks,
+    'compile-blocks', cb);
 });
 
 /**
@@ -149,7 +152,6 @@ gulp.task('copy-glyphicons', function() {
 gulp.task('copy-scaffolding', function() {
 
   return gulp.src(['scaffolding.less'].map(prefix))
-
     .pipe(replace(/\.img-(responsive|rounded|thumbnail|circle) {/g, '.img_$1_true {'))
     .pipe(extractSelector(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g, 'core-css', 'img'))
     .pipe(replace(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g, ''))
@@ -164,12 +166,72 @@ gulp.task('copy-scaffolding', function() {
     .pipe(extractSelector(/\.sr-only-focusable {[\s\S]*}/g, 'core-css', 'sr-only'))
     .pipe(replace(/\.sr-only-focusable {[\s\S]*}/g, ''))
 
+    .pipe(wait(500))
     .pipe(rename(prependFilename))
     .pipe(gulp.dest('levels/scaffolding'));
 });
 
 gulp.task('copy-core-css', function(cb) {
-  sequence('copy-grid', 'copy-buttons', cb);
+  sequence('copy-type', 'copy-grid', 'copy-buttons', cb);
+});
+
+gulp.task('copy-type', function() {
+
+  return gulp.src(['type.less'].map(prefix))
+    .pipe(wait(500))
+    /**
+     * Headings
+     */
+    .pipe(replace(/(,\s)/g, ', '))
+    .pipe(replace(/[,]* \.h(1|2|3|4|5|6)/g, ''))
+
+    // h1, h2, h3, h4, h5, h6
+    .pipe(extractSelector(/h1, h2, h3, h4, h5, h6 [\s\S]*?}\n}/g, 'core-css', 'raw-text', prependHeaderRawText))
+    .pipe(replace(/h1, h2, h3, h4, h5, h6/g, '.h1, .h2, .h3, .h4, .h5, .h6'))
+    .pipe(extractSelector(/\.h1, \.h2, \.h3, \.h4, \.h5, \.h6[\s\S]*?}\n}/g, 'core-css', 'heading', transfromHeading))
+    .pipe(replace(/\.h1, \.h2, \.h3, \.h4, \.h5, \.h6[\s\S]*?}\n}/g, ''))
+    .pipe(wait(500))
+
+    // h1, h2, h3
+    .pipe(extractSelector(/h1, h2, h3 [\s\S]*?}\n}/g, 'core-css', 'raw-text', prependHeaderRawText))
+    .pipe(replace(/h1, h2, h3/g, '.h1, .h2, .h3'))
+    .pipe(extractSelector(/\.h1, \.h2, \.h3[\s\S]*?}\n}/g, 'core-css', 'heading', transfromHeading))
+    .pipe(replace(/\.h1, \.h2, \.h3[\s\S]*?}\n}/g, ''))
+    .pipe(wait(500))
+
+    // h4, h5, h6
+    .pipe(extractSelector(/h4, h5, h6 [\s\S]*?}\n}/g, 'core-css', 'raw-text', prependHeaderRawText))
+    .pipe(replace(/h4, h5, h6/g, '.h4, .h5, .h6'))
+    .pipe(extractSelector(/\.h4, \.h5, \.h6[\s\S]*?}\n}/g, 'core-css', 'heading', transfromHeading))
+    .pipe(replace(/\.h4, \.h5, \.h6[\s\S]*?}\n}/g, ''))
+    .pipe(wait(500))
+    /*
+    */
+
+    .pipe(extractSelector(/h(1|2|3|4|5|6) [\s\S]*?}/g, 'core-css', 'raw-text', prependRawText))
+    .pipe(replace(/h(1|2|3|4|5|6) {/g, '.heading_level_$1 {'))
+    .pipe(extractSelector(/\.heading_level_(1|2|3|4|5|6) [\s\S]*?}/g, 'core-css', 'heading'))
+    .pipe(replace(/\.heading_level_(1|2|3|4|5|6) [\s\S]*?}/g, ''))
+    .pipe(wait(500))
+    /*
+    */
+
+    /*
+    .pipe(replace(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g, ''))
+    .pipe(extractSelector(/\hr[\s\S]*?}/g, 'core-css', 'raw-text', prependRawText))
+
+    .pipe(replace(/\hr {/g, '.hr {'))
+    .pipe(extractSelector(/\.hr[\s\S]*?}/g, 'core-css', 'hr'))
+    .pipe(replace(/\.hr[\s\S]*?}/g, ''))
+
+    .pipe(extractSelector(/\.sr-only {[\s\S]*?}/g, 'core-css', 'sr-only'))
+    .pipe(replace(/\.sr-only {[\s\S]*?}/g, ''))
+    .pipe(extractSelector(/\.sr-only-focusable {[\s\S]*}/g, 'core-css', 'sr-only'))
+    .pipe(replace(/\.sr-only-focusable {[\s\S]*}/g, ''))
+    */
+
+    .pipe(rename(prependFilename))
+    .pipe(gulp.dest('levels/core-css'));
 });
 
 gulp.task('copy-grid', function() {
@@ -221,23 +283,26 @@ gulp.task('copy-docs-site', function() {
 var prefix = function(item) { return join('node_modules/bootstrap/less', item); };
 var prependFilename = function(path) { path.dirname += '/' + path.basename; };
 var prependRawText = function(item) { return '.raw-text ' + item; };
+var prependHeaderRawText = function(item) { return item.replace(/h(1|2|3|4|5|6)/g, '\n.raw-text h$1'); };
+var transfromHeading = function(item) { return item.replace(/\.h(1|2|3|4|5|6)/g, '\n.heading_level_$1'); };
 var extractSelector = function(reg, level, block, transform) {
   transform = transform || function(item) { return item; };
   var folder = path.join('levels', level, block);
   var filename = path.join(folder, block + '.less');
+  console.log('filename', filename);
 
   return through.obj(function(file, enc, cb) {
 
     var contents = file.contents.toString('utf8');
     var res = contents.match(reg);
-    console.log('res', res);
-
     vfs.makeDir(folder).then(function() {
       if (res && res.length > 0) {
-        res.forEach(function(item) {
-          vfs.append(filename, transform(item) + '\n').then(function() { console.log(filename + ' appended'); });
+        res.forEach(function(data) {
+          vfs.append(filename, transform(data) + '\n', console.log);
         });
+
       }
+
     });
 
     this.push(file);
