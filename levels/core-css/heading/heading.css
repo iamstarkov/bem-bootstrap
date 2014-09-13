@@ -1,0 +1,73 @@
+.heading_level_1,
+.heading_level_2,
+.heading_level_3,
+.heading_level_4,
+.heading_level_5,
+.heading_level_6 {
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.1;
+  color: inherit;
+}
+.heading_level_1 small,
+.heading_level_2 small,
+.heading_level_3 small,
+.heading_level_4 small,
+.heading_level_5 small,
+.heading_level_6 small,
+.heading_level_1 .small,
+.heading_level_2 .small,
+.heading_level_3 .small,
+.heading_level_4 .small,
+.heading_level_5 .small,
+.heading_level_6 .small {
+  font-weight: normal;
+  line-height: 1;
+  color: #777777;
+}
+.heading_level_1,
+.heading_level_2,
+.heading_level_3 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+.heading_level_1 small,
+.heading_level_2 small,
+.heading_level_3 small,
+.heading_level_1 .small,
+.heading_level_2 .small,
+.heading_level_3 .small {
+  font-size: 65%;
+}
+.heading_level_4,
+.heading_level_5,
+.heading_level_6 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.heading_level_4 small,
+.heading_level_5 small,
+.heading_level_6 small,
+.heading_level_4 .small,
+.heading_level_5 .small,
+.heading_level_6 .small {
+  font-size: 75%;
+}
+.heading_level_1 {
+  font-size: 36px;
+}
+.heading_level_2 {
+  font-size: 30px;
+}
+.heading_level_3 {
+  font-size: 24px;
+}
+.heading_level_4 {
+  font-size: 18px;
+}
+.heading_level_5 {
+  font-size: 14px;
+}
+.heading_level_6 {
+  font-size: 12px;
+}
