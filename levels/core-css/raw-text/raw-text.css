@@ -80,3 +80,6 @@
 .raw-text p {
   margin: 0 0 10px;
 }
+.raw-text small {
+  font-size: 85%;
+}
