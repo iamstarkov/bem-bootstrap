@@ -1,0 +1,31 @@
+.bg_theme_primary {
+  color: #fff;
+  background-color: #428bca;
+}
+a.bg_theme_primary:hover {
+  background-color: #3071a9;
+}
+.bg_theme_success {
+  background-color: #dff0d8;
+}
+a.bg_theme_success:hover {
+  background-color: #c1e2b3;
+}
+.bg_theme_info {
+  background-color: #d9edf7;
+}
+a.bg_theme_info:hover {
+  background-color: #afd9ee;
+}
+.bg_theme_warning {
+  background-color: #fcf8e3;
+}
+a.bg_theme_warning:hover {
+  background-color: #f7ecb5;
+}
+.bg_theme_danger {
+  background-color: #f2dede;
+}
+a.bg_theme_danger:hover {
+  background-color: #e4b9b9;
+}
