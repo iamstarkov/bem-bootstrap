@@ -1,0 +1,31 @@
+.dl {
+  margin-top: 0; // Remove browser default
+  margin-bottom: @line-height-computed;
+}
+.dl__term, .dl__desc {
+  line-height: @line-height-base;
+}
+.dl__term {
+  font-weight: bold;
+}
+.dl__desc {
+  margin-left: 0; // Undo browser default
+}
+.dl_horizontal_true {
+  .dl__desc {
+    &:extend(.clearfix all); // Clear the floated `dt` if an empty `dd` is present
+  }
+
+  @media (min-width: @grid-float-breakpoint) {
+    .dl__term {
+      float: left;
+      width: (@dl-horizontal-offset - 20);
+      clear: left;
+      text-align: right;
+      .text-overflow();
+    }
+    .dl__desc {
+      margin-left: @dl-horizontal-offset;
+    }
+  }
+}

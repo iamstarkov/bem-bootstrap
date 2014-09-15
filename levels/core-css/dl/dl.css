@@ -1,0 +1,28 @@
+.dl {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+.dl__term,
+.dl__desc {
+  line-height: 1.42857143;
+}
+.dl__term {
+  font-weight: bold;
+}
+.dl__desc {
+  margin-left: 0;
+}
+@media (min-width: 768px) {
+  .dl_horizontal_true .dl__term {
+    float: left;
+    width: 160px;
+    clear: left;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dl_horizontal_true .dl__desc {
+    margin-left: 180px;
+  }
+}
