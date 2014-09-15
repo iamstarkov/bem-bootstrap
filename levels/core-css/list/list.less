@@ -1,0 +1,21 @@
+.list {
+  margin-top: 0;
+  margin-bottom: (@line-height-computed / 2);
+  .list {
+    margin-bottom: 0;
+  }
+}
+.list_unstyled_true {
+  padding-left: 0;
+  list-style: none;
+}
+.list_inline_true {
+  .list_unstyled_true();
+  margin-left: -5px;
+
+  .list__item {
+    display: inline-block;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+}
