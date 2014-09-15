@@ -1,0 +1,26 @@
+.text_align_left           { text-align: left; }
+.text_align_right          { text-align: right; }
+.text_align_center         { text-align: center; }
+.text_align_justify        { text-align: justify; }
+.text_align_nowrap         { white-space: nowrap; }
+.text_case_lowercase      { text-transform: lowercase; }
+.text_case_uppercase      { text-transform: uppercase; }
+.text_case_capitalize     { text-transform: capitalize; }
+.text_muted_true {
+  color: @text-muted;
+}
+.text_theme_primary {
+  .text-emphasis-variant(@brand-primary);
+}
+.text_theme_success {
+  .text-emphasis-variant(@state-success-text);
+}
+.text_theme_info {
+  .text-emphasis-variant(@state-info-text);
+}
+.text_theme_warning {
+  .text-emphasis-variant(@state-warning-text);
+}
+.text_theme_danger {
+  .text-emphasis-variant(@state-danger-text);
+}

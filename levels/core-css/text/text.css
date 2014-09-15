@@ -1,0 +1,57 @@
+.text_align_left {
+  text-align: left;
+}
+.text_align_right {
+  text-align: right;
+}
+.text_align_center {
+  text-align: center;
+}
+.text_align_justify {
+  text-align: justify;
+}
+.text_align_nowrap {
+  white-space: nowrap;
+}
+.text_case_lowercase {
+  text-transform: lowercase;
+}
+.text_case_uppercase {
+  text-transform: uppercase;
+}
+.text_case_capitalize {
+  text-transform: capitalize;
+}
+.text_muted_true {
+  color: #777777;
+}
+.text_theme_primary {
+  color: #428bca;
+}
+a.text_theme_primary:hover {
+  color: #3071a9;
+}
+.text_theme_success {
+  color: #3c763d;
+}
+a.text_theme_success:hover {
+  color: #2b542c;
+}
+.text_theme_info {
+  color: #31708f;
+}
+a.text_theme_info:hover {
+  color: #245269;
+}
+.text_theme_warning {
+  color: #8a6d3b;
+}
+a.text_theme_warning:hover {
+  color: #66512c;
+}
+.text_theme_danger {
+  color: #a94442;
+}
+a.text_theme_danger:hover {
+  color: #843534;
+}
