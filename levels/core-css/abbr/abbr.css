@@ -1,0 +1,5 @@
+.abbr[title],
+.abbr[data-original-title] {
+  cursor: help;
+  border-bottom: 1px dotted #777777;
+}
