@@ -14,6 +14,7 @@ var through = require('through2');
 var path = require('path');
 var fs = require('fs');
 var vfs = require('vow-fs');
+var File = require('vinyl');
 
 var levels = [
   'variables', // less-only
@@ -150,26 +151,41 @@ gulp.task('copy-glyphicons', function() {
 
 // scaffolding should 100% be in upper level
 gulp.task('copy-scaffolding', function() {
-
   return gulp.src(['scaffolding.less'].map(prefix))
-    .pipe(replace(/\.img-(responsive|rounded|thumbnail|circle) {/g, '.img_$1_true {'))
-    .pipe(extractSelector(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g, 'core-css', 'img'))
-    .pipe(replace(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g, ''))
+    .pipe(through.obj(function(file, enc, cb) {
+      var self = this;
+      var block = 'scaffolding';
+      var storage = {};
+      var content = file.contents.toString('utf8');
 
-    .pipe(extractSelector(/\hr[\s\S]*?}/g, 'core-css', 'raw-text', prependRawText))
-    .pipe(replace(/\hr {/g, '.hr {'))
-    .pipe(extractSelector(/\.hr[\s\S]*?}/g, 'core-css', 'hr'))
-    .pipe(replace(/\.hr[\s\S]*?}/g, ''))
+      content = content.replace(/\.img-(responsive|rounded|thumbnail|circle) {/g, '.img_$1_true {');
+      storage['img'] = content.match(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g).map(appendNL).join('\n');
+      content = content.replace(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g, '');
 
-    .pipe(extractSelector(/\.sr-only {[\s\S]*?}/g, 'core-css', 'sr-only'))
-    .pipe(replace(/\.sr-only {[\s\S]*?}/g, ''))
-    .pipe(wait(500))
-    .pipe(extractSelector(/\.sr-only-focusable {[\s\S]*}/g, 'core-css', 'sr-only'))
-    .pipe(replace(/\.sr-only-focusable {[\s\S]*}/g, ''))
-    .pipe(wait(500))
+      storage['raw-text'] = content.match(/\hr[\s\S]*?}/g).map(prependRawText).map(appendNL).join('\n');
+      content = content.replace(/\hr {/g, '.hr {');
+      storage['hr'] = content.match(/\.hr[\s\S]*?}/g).map(appendNL).join('\n');
+      content = content.replace(/\.hr[\s\S]*?}/g, '');
 
-    .pipe(rename(prependFilename))
-    .pipe(gulp.dest('levels/scaffolding'));
+      storage['sr-only'] = content.match(/\.sr-only {[\s\S]*?}/g).map(appendNL).join('\n');
+      content = content.replace(/\.sr-only {[\s\S]*?}/g, '');
+      storage['sr-only'] += content.match(/\.sr-only-focusable {[\s\S]*}/g).map(appendNL).join('\n');
+      content = content.replace(/\.sr-only-focusable {[\s\S]*}/g, '');
+
+      Object.keys(storage).forEach(function(block) {
+        self.push(new File({
+          path: join('core-css', block, block + '.less'),
+          contents: new Buffer(storage[block])
+        }));
+      });
+
+      self.push(new File({
+        path: join('scaffolding', block, block + '.less'),
+        contents: new Buffer(content)
+      }));
+      return cb();
+    }))
+    .pipe(gulp.dest('levels'));
 });
 
 gulp.task('copy-core-css', function(cb) {
@@ -450,6 +466,7 @@ var prependFilename = function(path) { path.dirname += '/' + path.basename; };
 var prependRawText = function(item) { return '.raw-text ' + item; };
 var prependHeaderRawText = function(item) { return item.replace(/h(1|2|3|4|5|6)/g, '\n.raw-text h$1'); };
 var transfromHeading = function(item) { return item.replace(/\.h(1|2|3|4|5|6)/g, '\n.heading_level_$1'); };
+var appendNL = function(item) { return item + '\n'; };
 var extractSelector = function(reg, level, block, transform) {
   transform = transform || function(item) { return item; };
   var folder = path.join('levels', level, block);
@@ -460,7 +477,6 @@ var extractSelector = function(reg, level, block, transform) {
 
     var contents = file.contents.toString('utf8');
     var res = contents.match(reg);
-    var appendNL = function(item) { return item + '\n'; };
     vfs.makeDir(folder).then(function() {
       if (res && res.length > 0) {
         vfs.append(filename, res.map(transform).map(appendNL).join(''), console.log);
