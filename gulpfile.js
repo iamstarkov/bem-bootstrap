@@ -161,23 +161,23 @@ gulp.task('copy-scaffolding', function() {
       storage = extract(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim, storage, content,
         ['.img_$1_true $2', 'img']
       );
-      content = content.replace(/\.img-(responsive|rounded|thumbnail|circle)([\s\S]*?})/gim, '');
+      content = content.replace(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim, '');
 
       storage = extract(/hr ([\s\S]*?})/gim, storage, content,
         ['.raw-text hr $1', 'raw-text'],
         ['.hr $1', 'hr']
       );
-      content = content.replace(/hr([\s\S]*?})/gim, '');
+      content = content.replace(/hr ([\s\S]*?})/gim, '');
 
       storage = extract(/\.sr-only ({[\s\S]*?})/gim, storage, content,
         ['.sr-only $1', 'sr-only']
       );
       content = content.replace(/\.sr-only ({[\s\S]*?})/gim, '');
 
-      storage = extract(/\.sr-only-focusable([\s\S]*?}\n})/gim, storage, content,
+      storage = extract(/\.sr-only-focusable ([\s\S]*?}\n})/gim, storage, content,
         ['.sr-only-focusable $1', 'sr-only']
       );
-      content = content.replace(/\.sr-only-focusable([\s\S]*?}\n})/gim, '');
+      content = content.replace(/\.sr-only-focusable ([\s\S]*?}\n})/gim, '');
 
       // console.log('STORAGE');
       // console.log(storage);
@@ -205,118 +205,141 @@ gulp.task('copy-core-css', function(cb) {
 gulp.task('copy-type', function(cb) {
 
   return gulp.src(['type.less'].map(prefix))
-    .pipe(wait(500))
-    /**
-     * Headings
-     */
     .pipe(replace(/(,[\s]*)/g, ', '))
     .pipe(replace(/[,]* \.h(1|2|3|4|5|6)/g, ''))
+    .pipe(through.obj(function(file, enc, cb) {
+      var self = this;
+      var storage = {};
+      var content = file.contents.toString('utf8');
 
-    // h1, h2, h3, h4, h5, h6
-    .pipe(extractSelector(/h1, h2, h3, h4, h5, h6 [\s\S]*?}\n}/g, 'core-css', 'raw-text', prependHeaderRawText))
-    .pipe(replace(/h1, h2, h3, h4, h5, h6/g, '.h1, .h2, .h3, .h4, .h5, .h6'))
-    .pipe(extractSelector(/\.h1, \.h2, \.h3, \.h4, \.h5, \.h6[\s\S]*?}\n}/g, 'core-css', 'heading', transfromHeading))
-    .pipe(replace(/\.h1, \.h2, \.h3, \.h4, \.h5, \.h6[\s\S]*?}\n}/g, ''))
-    // .pipe(wait(500))
+      /**
+       * Headings
+       */
 
-    // h1, h2, h3
-    .pipe(extractSelector(/h1, h2, h3 [\s\S]*?}\n}/g, 'core-css', 'raw-text', prependHeaderRawText))
-    .pipe(replace(/h1, h2, h3/g, '.h1, .h2, .h3'))
-    .pipe(extractSelector(/\.h1, \.h2, \.h3[\s\S]*?}\n}/g, 'core-css', 'heading', transfromHeading))
-    .pipe(replace(/\.h1, \.h2, \.h3[\s\S]*?}\n}/g, ''))
-    // .pipe(wait(500))
+      // h1, h2, h3, h4, h5, h6
+      storage = extract(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim, storage, content,
+        [[1, 2, 3, 4, 5, 6].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
+        [[1, 2, 3, 4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
+      );
+      content = content.replace(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim, '');
 
-    // h4, h5, h6
-    .pipe(extractSelector(/h4, h5, h6 [\s\S]*?}\n}/g, 'core-css', 'raw-text', prependHeaderRawText))
-    .pipe(replace(/h4, h5, h6/g, '.h4, .h5, .h6'))
-    .pipe(extractSelector(/\.h4, \.h5, \.h6[\s\S]*?}\n}/g, 'core-css', 'heading', transfromHeading))
-    .pipe(replace(/\.h4, \.h5, \.h6[\s\S]*?}\n}/g, ''))
-    // .pipe(wait(500))
-    /*
-    */
+      // h1, h2, h3
+      storage = extract(/h1, h2, h3 ([\s\S]*?}\n})/gim, storage, content,
+        [[1, 2, 3].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
+        [[1, 2, 3].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
+      );
+      content = content.replace(/h1, h2, h3 ([\s\S]*?}\n})/gim, '');
 
-    .pipe(extractSelector(/h(1|2|3|4|5|6) [\s\S]*?}/g, 'core-css', 'raw-text', prependRawText))
-    .pipe(replace(/h(1|2|3|4|5|6) {/g, '.heading_level_$1 {'))
-    .pipe(extractSelector(/\.heading_level_(1|2|3|4|5|6) [\s\S]*?}/g, 'core-css', 'heading'))
-    .pipe(replace(/\.heading_level_(1|2|3|4|5|6) [\s\S]*?}/g, ''))
-    .pipe(wait(500))
+      // h4, h5, h6
+      storage = extract(/h4, h5, h6 ([\s\S]*?}\n})/gim, storage, content,
+        [[4, 5, 6].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
+        [[4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
+      );
+      content = content.replace(/h4, h5, h6 ([\s\S]*?}\n})/gim, '');
 
-    /**
-     * Body text
-     */
-    .pipe(extractSelector(/p {[\s\S]*?}/g, 'core-css', 'raw-text', prependRawText))
-    .pipe(replace(/p {/g, '.p {'))
-    .pipe(extractSelector(/\.p {[\s\S]*?}/g, 'core-css', 'p'))
-    .pipe(replace(/\.p {[\s\S]*?}/g, ''))
-    .pipe(wait(500))
+      // h(1|2|3|4|5|6)
+      storage = extract(/h(1|2|3|4|5|6) ([\s\S]*?})/gim, storage, content,
+        ['.raw-text h$1 $2', 'raw-text'],
+        ['.heading_level_$1 $2', 'heading']
+      );
+      content = content.replace(/h(1|2|3|4|5|6) ([\s\S]*?})/gim, '');
 
-    .pipe(extractSelector(/\.lead {[\s\S]*?}\n}/g, 'core-css', 'lead'))
-    .pipe(replace(/\.lead {[\s\S]*?}\n}/g, ''))
-    .pipe(wait(500))
+      /**
+       * Body text
+       */
+      // p
+      storage = extract(/p ({[\s\S]*?})/gim, storage, content,
+        ['.raw-text p $1', 'raw-text'],
+        ['.p $1', 'p']
+      );
+      content = content.replace(/p ({[\s\S]*?})/gim, '');
 
-    /**
-     * Emphasis & misc
-     */
+      // .lead
+      storage = extract(/\.lead ([\s\S]*?}\n})/gim, storage, content,
+        ['.lead $1', 'lead']
+      );
+      content = content.replace(/\.lead ([\s\S]*?}\n})/gim, '');
 
-    .pipe(replace(/\nsmall, \.small {/g, '\ntempsmall {'))
-    .pipe(extractSelector(/tempsmall {[\s\S]*?}/g, 'core-css', 'raw-text', function(item) {
-      return prependRawText(item.replace(/temp/g, ''));
+      /**
+       * Emphasis & misc
+       */
+      // .small
+      content = content.replace(/\nsmall, \.small {/g, '\ntempsmall {');
+      storage = extract(/tempsmall ({[\s\S]*?})/gim, storage, content,
+        ['.raw-text small $1', 'raw-text'],
+        ['.small $1', 'small']
+      );
+      content = content.replace(/tempsmall ({[\s\S]*?})/gim, '');
+
+      // .cite
+      storage = extract(/cite ({[\s\S]*?})/gim, storage, content,
+        ['.raw-text cite $1', 'raw-text'],
+        ['.cite $1', 'cite']
+      );
+      content = content.replace(/cite ({[\s\S]*?})/gim, '');
+
+      // .mark
+      content = content.replace(/mark, .mark {/g, 'mark {');
+      storage = extract(/mark ({[\s\S]*?})/gim, storage, content,
+        ['.raw-text mark $1', 'raw-text'],
+        ['.mark $1', 'mark']
+      );
+      content = content.replace(/mark ({[\s\S]*?})/gim, '');
+
+      // text
+      storage = extract(/\.text-(left|right|center|justify|nowrap) ([\s\S]*?})/gim, storage, content,
+        ['.text_align_$1 $2', 'text']
+      );
+      content = content.replace(/\.text-(left|right|center|justify|nowrap) ([\s\S]*?})/gim, '');
+
+      storage = extract(/\.text-(lowercase|uppercase|capitalize) ([\s\S]*?})/gim, storage, content,
+        ['.text_case_$1 $2', 'text']
+      );
+      content = content.replace(/\.text-(lowercase|uppercase|capitalize) ([\s\S]*?})/gim, '');
+
+      storage = extract(/\.text-muted ([\s\S]*?})/gim, storage, content,
+        ['.text_muted_true $1', 'text']
+      );
+      content = content.replace(/\.text-muted ([\s\S]*?})/gim, '');
+
+      storage = extract(/\.text-(primary|success|info|warning|danger) ([\s\S]*?})/gim, storage, content,
+        ['.text_theme_$1 $2', 'text']
+      );
+      content = content.replace(/\.text-(primary|success|info|warning|danger) ([\s\S]*?})/gim, '');
+
+      // bg
+      storage = extract(/\.bg-(primary|success|info|warning|danger) ([\s\S]*?})/gim, storage, content,
+        ['.bg_theme_$1 $2', 'bg']
+      );
+      content = content.replace(/\.bg-(primary|success|info|warning|danger) ([\s\S]*?})/gim, '');
+
+      /**
+       * Page header
+       */
+      storage = extract(/\.page-header ([\s\S]*?})/gim, storage, content,
+        ['.page-header $1', 'page-header']
+      );
+      content = content.replace(/\.page-header ([\s\S]*?})/gim, '');
+
+      Object.keys(storage).forEach(function(block) {
+        self.push(new File({
+          path: getBlockPath('core-css', block),
+          contents: new Buffer(storage[block].join('\n'))
+        }));
+      });
+
+      self.push(new File({
+        path: getBlockPath('core-css', 'type'),
+        contents: new Buffer(content)
+      }));
+
+      return cb();
     }))
-    .pipe(extractSelector(/tempsmall {[\s\S]*?}/g, 'core-css', 'small', function(item) {
-      return item.replace(/tempsmall/g, '.small');
-    }))
-    .pipe(replace(/tempsmall {[\s\S]*?}/g, ''))
-    .pipe(wait(500))
+    .pipe(gulp.dest('levels'));
 
-    .pipe(extractSelector(/cite {[\s\S]*?}/g, 'core-css', 'raw-text', prependRawText))
-    .pipe(replace(/cite {/g, '.cite {'))
-    .pipe(extractSelector(/\.cite {[\s\S]*?}/g, 'core-css', 'cite'))
-    .pipe(replace(/\.cite {[\s\S]*?}/g, ''))
-    .pipe(wait(500))
+  gulp.src()
 
-    .pipe(replace(/mark, .mark {/g, 'mark {'))
-    .pipe(extractSelector(/mark {[\s\S]*?}/g, 'core-css', 'raw-text', prependRawText))
-    .pipe(replace(/mark {/g, '.mark {'))
-    .pipe(extractSelector(/\.mark {[\s\S]*?}/g, 'core-css', 'mark'))
-    .pipe(replace(/\.mark {[\s\S]*?}/g, ''))
-    .pipe(wait(500))
 
-    .pipe(extractSelector(/\.text-(left|right|center|justify|nowrap)[\s\S]*?}/g, 'core-css', 'text', function(item) {
-      return item.replace(/\.text-/g, '.text_align_');
-    }))
-    .pipe(replace(/\.text-(left|right|center|justify|nowrap)[\s\S]*?}/g, ''))
-    .pipe(wait(500))
-
-    .pipe(extractSelector(/\.text-(lowercase|uppercase|capitalize)[\s\S]*?}/g, 'core-css', 'text', function(item) {
-      return item.replace(/\.text-/g, '.text_case_');
-    }))
-    .pipe(replace(/\.text-(lowercase|uppercase|capitalize)[\s\S]*?}/g, ''))
-    .pipe(wait(500))
-
-    .pipe(extractSelector(/\.text-muted[\s\S]*?}/g, 'core-css', 'text', function(item) {
-      return item.replace(/\.text-muted/g, '.text_muted_true');
-    }))
-    .pipe(replace(/\.text-muted[\s\S]*?}/g, ''))
-    .pipe(wait(500))
-
-    .pipe(extractSelector(/\.text-(primary|success|info|warning|danger)[\s\S]*?}/g, 'core-css', 'text', function(item) {
-      return item.replace(/\.text-(primary|success|info|warning|danger)/g, '.text_theme_$1');
-    }))
-    .pipe(replace(/\.text-(primary|success|info|warning|danger)[\s\S]*?}/g, ''))
-    .pipe(wait(500))
-
-    .pipe(extractSelector(/\.bg-(primary|success|info|warning|danger)[\s\S]*?}/g, 'core-css', 'bg', function(item) {
-      return item.replace(/\.bg-(primary|success|info|warning|danger)/g, '.bg_theme_$1');
-    }))
-    .pipe(replace(/\.bg-(primary|success|info|warning|danger)[\s\S]*?}/g, ''))
-    .pipe(wait(500))
-
-    /**
-     * Page header
-     */
-    .pipe(extractSelector(/\.page-header[\s\S]*?}/g, 'core-css', 'page-header'))
-    .pipe(replace(/\.page-header[\s\S]*?}/g, ''))
-    .pipe(wait(500))
 
     /**
      * Lists
