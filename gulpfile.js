@@ -158,29 +158,39 @@ gulp.task('copy-scaffolding', function() {
       var storage = {};
       var content = file.contents.toString('utf8');
 
-      content = content.replace(/\.img-(responsive|rounded|thumbnail|circle) {/g, '.img_$1_true {');
-      storage['img'] = content.match(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g).map(appendNL).join('\n');
-      content = content.replace(/\.img_(responsive|rounded|thumbnail|circle)_true[\s\S]*?}/g, '');
+      storage = extract(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim, storage, content,
+        ['.img_$1_true $2', 'img']
+      );
+      content = content.replace(/\.img-(responsive|rounded|thumbnail|circle)([\s\S]*?})/gim, '');
 
-      storage['raw-text'] = content.match(/\hr[\s\S]*?}/g).map(prependRawText).map(appendNL).join('\n');
-      content = content.replace(/\hr {/g, '.hr {');
-      storage['hr'] = content.match(/\.hr[\s\S]*?}/g).map(appendNL).join('\n');
-      content = content.replace(/\.hr[\s\S]*?}/g, '');
+      storage = extract(/hr ([\s\S]*?})/gim, storage, content,
+        ['.raw-text hr $1', 'raw-text'],
+        ['.hr $1', 'hr']
+      );
+      content = content.replace(/hr([\s\S]*?})/gim, '');
 
-      storage['sr-only'] = content.match(/\.sr-only {[\s\S]*?}/g).map(appendNL).join('\n');
-      content = content.replace(/\.sr-only {[\s\S]*?}/g, '');
-      storage['sr-only'] += content.match(/\.sr-only-focusable {[\s\S]*}/g).map(appendNL).join('\n');
-      content = content.replace(/\.sr-only-focusable {[\s\S]*}/g, '');
+      storage = extract(/\.sr-only ({[\s\S]*?})/gim, storage, content,
+        ['.sr-only $1', 'sr-only']
+      );
+      content = content.replace(/\.sr-only ({[\s\S]*?})/gim, '');
+
+      storage = extract(/\.sr-only-focusable([\s\S]*?}\n})/gim, storage, content,
+        ['.sr-only-focusable $1', 'sr-only']
+      );
+      content = content.replace(/\.sr-only-focusable([\s\S]*?}\n})/gim, '');
+
+      // console.log('STORAGE');
+      // console.log(storage);
 
       Object.keys(storage).forEach(function(block) {
         self.push(new File({
-          path: join('core-css', block, block + '.less'),
-          contents: new Buffer(storage[block])
+          path: getBlockPath('core-css', block),
+          contents: new Buffer(storage[block].join('\n'))
         }));
       });
 
       self.push(new File({
-        path: join('scaffolding', block, block + '.less'),
+        path: getBlockPath('scaffolding', block),
         contents: new Buffer(content)
       }));
       return cb();
@@ -467,6 +477,7 @@ var prependRawText = function(item) { return '.raw-text ' + item; };
 var prependHeaderRawText = function(item) { return item.replace(/h(1|2|3|4|5|6)/g, '\n.raw-text h$1'); };
 var transfromHeading = function(item) { return item.replace(/\.h(1|2|3|4|5|6)/g, '\n.heading_level_$1'); };
 var appendNL = function(item) { return item + '\n'; };
+var getBlockPath = function(level, block) { return join(level, block, block + '.less'); };
 var extractSelector = function(reg, level, block, transform) {
   transform = transform || function(item) { return item; };
   var folder = path.join('levels', level, block);
@@ -487,3 +498,31 @@ var extractSelector = function(reg, level, block, transform) {
     return cb();
   });
 };
+
+var extract = function(matcher, storage, content) {
+  var matched = content.match(matcher);
+  if (!matched || matched.length === 0) {
+    return storage;
+  }
+
+  getArgs.apply(null, arguments).slice(3).map(function(pair) {
+    return {
+      transform: function(item) { return item.replace(matcher, pair[0]); },
+      block: pair[1]
+    };
+  }).forEach(function(item) {
+    if (!storage[item.block]) { storage[item.block] = []; }
+
+    storage[item.block].push(matched.map(item.transform).map(appendNL).join('\n'));
+  });
+
+  return storage;
+};
+
+function getArgs() {
+  var args = new Array(arguments.length);
+  for (var i = 0; i < args.length; ++i) {
+    args[i] = arguments[i];
+  }
+  return args;
+}
