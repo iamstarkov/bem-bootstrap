@@ -12,6 +12,14 @@
 .dl__desc {
   margin-left: 0;
 }
+.dl_horizontal_true .dl__desc:before,
+.dl_horizontal_true .dl__desc:after {
+  content: " ";
+  display: table;
+}
+.dl_horizontal_true .dl__desc:after {
+  clear: both;
+}
 @media (min-width: 768px) {
   .dl_horizontal_true .dl__term {
     float: left;
