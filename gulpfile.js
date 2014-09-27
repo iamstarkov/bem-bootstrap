@@ -4,17 +4,15 @@ var join = require('path').join;
 var sequence = require('run-sequence');
 var less = require('gulp-less');
 var replace = require('gulp-replace');
-var rename = require('gulp-rename');
 var header = require('gulp-header');
-var footer = require('gulp-footer');
-var wait = require('gulp-wait');
 var debug = require('gulp-debug');
 var del = require('del');
 var through = require('through2');
 var path = require('path');
-var fs = require('fs');
-var vfs = require('vow-fs');
 var File = require('vinyl');
+
+var Storage = require('./storage.js');
+var storage = new Storage();
 
 var levels = [
   'variables', // less-only
@@ -34,28 +32,382 @@ gulp.task('clean', function(cb) {
 });
 
 /**
- * Copy all the stuff
+ * Make all the stuff
  */
-gulp.task('copy', function(cb) {
-  sequence('clean', ['copy-less', 'copy-docs'], cb);
+gulp.task('default', function(cb) {
+  sequence('clean', ['process-blocks', 'docs'], cb);
 });
 
 /**
  * Copy blocks
  */
-gulp.task('copy-less', function(cb) {
-  var levelTasks = [
-    'copy-variables',
-    'copy-mixins',
-    'copy-normalize',
-    'copy-print',
-    'copy-glyphicons',
-    'copy-scaffolding',
-    'copy-core-css'
-  ];
-  sequence('copy-fonts',
-    levelTasks,
-    'compile-blocks', cb);
+gulp.task('process-blocks', function(cb) {
+  sequence(
+    'copy-fonts',
+    [
+      'process-variables-and-mixins',
+      'process-reset-and-dependencies',
+      'process-core-css'
+    ],
+    'place-blocks',
+    'compile-blocks',
+    cb);
+});
+
+/**
+ * Core variables and mixins
+ */
+gulp.task('process-variables-and-mixins', ['copy-fonts', 'copy-mixins'], function(done) {
+  gulp.src(['variables.less', 'mixins.less'].map(prefix))
+    .pipe(replace('&:extend(.clearfix all)', '.clearfix()'))
+    .pipe(through.obj(function(file, enc, cb) {
+      var content = file.contents.toString('utf8');
+      var filename = path.basename(file.relative, '.less');
+
+      if (filename === 'variables') {
+        content = content.replace('../fonts', '../../../fonts');
+        storage.add('variables', 'variables', content);
+      }
+
+      if (filename === 'mixins') {
+        storage.add('mixins', 'mixins', content);
+      }
+
+      cb();
+    }))
+    .on('finish', done);
+});
+
+gulp.task('copy-fonts', function() {
+  return gulp.src(['node_modules/bootstrap/fonts/**']).pipe(gulp.dest('fonts'));
+});
+
+gulp.task('copy-mixins', function() {
+  return gulp.src(['mixins/**.less'].map(prefix))
+    // clearfix fix
+    .pipe(replace('&:extend(.clearfix all);', '.clearfix();'))
+    // grid
+    .pipe(replace(/\.container-fixed/g, '.grid-fixed'))
+    .pipe(replace(/\.col-(xs|sm|md|lg)-@{index}/g, '.grid__cell-$1_size_@{index}'))
+    .pipe(replace(/\.col-@{class}-@{index}/g, '.grid__cell-@{class}_size_@{index}'))
+    .pipe(replace(/\.col-@{class}-(push|pull|offset)-@{index}/g, '.grid__cell-@{class}_$1_@{index}'))
+    .pipe(replace(/\.col-@{class}-(push|pull)-0/g, '.grid__cell-@{class}_$1_0'))
+    .pipe(gulp.dest('levels/mixins/mixins/mixins'));
+});
+
+/**
+ * Reset and dependencies
+ */
+gulp.task('process-reset-and-dependencies', function(done) {
+  gulp.src(['normalize.less', 'print.less', 'glyphicons.less'].map(prefix))
+    .pipe(replace('&:extend(.clearfix all)', '.clearfix()'))
+    .pipe(through.obj(function(file, enc, cb) {
+      var content = file.contents.toString('utf8');
+      var filename = path.basename(file.relative, '.less');
+
+      if (filename === 'glyphicons') {
+        content = content.replace(/.glyphicon-/g, '.glyphicon_item_');
+      }
+
+      storage.add(filename, filename, content);
+
+      cb();
+    }))
+    .on('finish', done);
+});
+
+/**
+ * Core CSS
+ */
+gulp.task('process-core-css', function(done) {
+  return gulp.src([
+    'scaffolding.less',
+    'type.less',
+    // 'code.less',
+    'grid.less',
+    // 'tables.less',
+    // 'forms.less',
+    'buttons.less'
+  ].map(prefix))
+    .pipe(replace('&:extend(.clearfix all)', '.clearfix()'))
+    .pipe(through.obj(function(file, enc, cb) {
+      var content = file.contents.toString('utf8');
+      var filename = path.basename(file.relative, '.less');
+      var level = 'core-css';
+      var extract = extractFactory(level);
+
+      if (filename === 'scaffolding') {
+
+        extract(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim, storage, content,
+          ['.img_$1_true $2', 'img']
+        );
+        content = content.replace(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim, '');
+
+        extract(/hr ([\s\S]*?})/gim, storage, content,
+          ['.raw-text hr $1', 'raw-text'],
+          ['.hr $1', 'hr']
+        );
+        content = content.replace(/hr ([\s\S]*?})/gim, '');
+
+        extract(/\.sr-only ({[\s\S]*?})/gim, storage, content,
+          ['.sr-only $1', 'sr-only']
+        );
+        content = content.replace(/\.sr-only ({[\s\S]*?})/gim, '');
+
+        extract(/\.sr-only-focusable ([\s\S]*?}\n})/gim, storage, content,
+          ['.sr-only-focusable $1', 'sr-only']
+        );
+        content = content.replace(/\.sr-only-focusable ([\s\S]*?}\n})/gim, '');
+
+        storage.add(filename, filename, content);
+      }
+
+      if (filename === 'type') {
+        content = content.replace(/(,[\s]*)/g, ', ');
+        content = content.replace(/[,]* \.h(1|2|3|4|5|6)/g, '');
+
+        /**
+         * Headings
+         */
+
+        // h1, h2, h3, h4, h5, h6
+        extract(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim, storage, content,
+          [[1, 2, 3, 4, 5, 6].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
+          [[1, 2, 3, 4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
+        );
+        content = content.replace(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim, '');
+
+        // h1, h2, h3
+        extract(/h1, h2, h3 ([\s\S]*?}\n})/gim, storage, content,
+          [[1, 2, 3].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
+          [[1, 2, 3].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
+        );
+        content = content.replace(/h1, h2, h3 ([\s\S]*?}\n})/gim, '');
+
+        // h4, h5, h6
+        extract(/h4, h5, h6 ([\s\S]*?}\n})/gim, storage, content,
+          [[4, 5, 6].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
+          [[4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
+        );
+        content = content.replace(/h4, h5, h6 ([\s\S]*?}\n})/gim, '');
+
+        // h(1|2|3|4|5|6)
+        extract(/h(1|2|3|4|5|6) ([\s\S]*?})/gim, storage, content,
+          ['.raw-text h$1 $2', 'raw-text'],
+          ['.heading_level_$1 $2', 'heading']
+        );
+        content = content.replace(/h(1|2|3|4|5|6) ([\s\S]*?})/gim, '');
+
+        /**
+         * Body text
+         */
+        // p
+        extract(/p ({[\s\S]*?})/gim, storage, content,
+          ['.raw-text p $1', 'raw-text'],
+          ['.p $1', 'p']
+        );
+        content = content.replace(/p ({[\s\S]*?})/gim, '');
+
+        // .lead
+        extract(/\.lead ([\s\S]*?}\n})/gim, storage, content,
+          ['.lead $1', 'lead']
+        );
+        content = content.replace(/\.lead ([\s\S]*?}\n})/gim, '');
+
+        /**
+         * Emphasis & misc
+         */
+        // .small
+        content = content.replace(/\nsmall, \.small {/g, '\ntempsmall {');
+        extract(/tempsmall ({[\s\S]*?})/gim, storage, content,
+          ['.raw-text small $1', 'raw-text'],
+          ['.small $1', 'small']
+        );
+        content = content.replace(/tempsmall ({[\s\S]*?})/gim, '');
+
+        // .cite
+        extract(/cite ({[\s\S]*?})/gim, storage, content,
+          ['.raw-text cite $1', 'raw-text'],
+          ['.cite $1', 'cite']
+        );
+        content = content.replace(/cite ({[\s\S]*?})/gim, '');
+
+        // .mark
+        content = content.replace(/mark, .mark {/g, 'mark {');
+        extract(/mark ({[\s\S]*?})/gim, storage, content,
+          ['.raw-text mark $1', 'raw-text'],
+          ['.mark $1', 'mark']
+        );
+        content = content.replace(/mark ({[\s\S]*?})/gim, '');
+
+        // text
+        extract(/\.text-(left|right|center|justify|nowrap) ([\s\S]*?})/gim, storage, content,
+          ['.text_align_$1 $2', 'text']
+        );
+        content = content.replace(/\.text-(left|right|center|justify|nowrap) ([\s\S]*?})/gim, '');
+
+        extract(/\.text-(lowercase|uppercase|capitalize) ([\s\S]*?})/gim, storage, content,
+          ['.text_case_$1 $2', 'text']
+        );
+        content = content.replace(/\.text-(lowercase|uppercase|capitalize) ([\s\S]*?})/gim, '');
+
+        extract(/\.text-muted ([\s\S]*?})/gim, storage, content,
+          ['.text_muted_true $1', 'text']
+        );
+        content = content.replace(/\.text-muted ([\s\S]*?})/gim, '');
+
+        extract(/\.text-(primary|success|info|warning|danger) ([\s\S]*?})/gim, storage, content,
+          ['.text_theme_$1 $2', 'text']
+        );
+        content = content.replace(/\.text-(primary|success|info|warning|danger) ([\s\S]*?})/gim, '');
+
+        // bg
+        extract(/\.bg-(primary|success|info|warning|danger) ([\s\S]*?})/gim, storage, content,
+          ['.bg_theme_$1 $2', 'bg']
+        );
+        content = content.replace(/\.bg-(primary|success|info|warning|danger) ([\s\S]*?})/gim, '');
+
+        /**
+         * Page header
+         */
+        extract(/\.page-header ([\s\S]*?})/gim, storage, content,
+          ['.page-header $1', 'page-header']
+        );
+        content = content.replace(/\.page-header ([\s\S]*?})/gim, '');
+
+        /**
+         * Lists
+         */
+        // .list
+        extract(/\nul, ol ([\s\S]*?}\n})/gim, storage, content,
+          ['.raw-text ul,\n.raw-text ol $1', 'raw-text'],
+          ['.list $1', 'list', ['ul, ol', '.list']]
+        );
+        content = content.replace(/\nul, ol ([\s\S]*?}\n})/gim, '');
+
+        extract(/\.list-unstyled ([\s\S]*?})/gim, storage, content,
+          ['.list_unstyled_true $1', 'list']
+        );
+        content = content.replace(/\.list-unstyled ([\s\S]*?})/gim, '');
+        content = content.replace(/\.list-unstyled\(\)/gim, '.list_unstyled_true()');
+
+        extract(/\.list-inline ([\s\S]*?}\n})/gim, storage, content,
+          ['.list_inline_true $1', 'list', ['> li', '> .list__item']]
+        );
+        content = content.replace(/\.list-inline ([\s\S]*?}\n})/gim, '');
+
+        // dl
+        extract(/dl ([\s\S]*?})/gim, storage, content,
+          ['.raw-text dl $1', 'raw-text'],
+          ['.dl $1', 'dl']
+        );
+        content = content.replace(/dl ([\s\S]*?})/gim, '');
+
+        extract(/dt, dd ([\s\S]*?})/gim, storage, content,
+          ['.raw-text dt,\n.raw-text dd $1', 'raw-text'],
+          ['.dl__term,\n.dl__desc $1', 'dl']
+        );
+        content = content.replace(/dt, dd ([\s\S]*?})/gim, '');
+
+        extract(/\ndt ([\s\S]*?})/gim, storage, content,
+          ['.raw-text dt $1', 'raw-text'],
+          ['.dl__term $1', 'dl']
+        );
+        content = content.replace(/\ndt ([\s\S]*?})/gim, '');
+
+        extract(/\ndd ([\s\S]*?})/gim, storage, content,
+          ['.raw-text dd $1', 'raw-text'],
+          ['.dl__desc $1', 'dl']
+        );
+        content = content.replace(/\ndd ([\s\S]*?})/gim, '');
+
+        extract(/\ndd ([\s\S]*?})/gim, storage, content,
+          ['.raw-text dd $1', 'raw-text'],
+          ['.dl__desc $1', 'dl']
+        );
+        content = content.replace(/\ndd ([\s\S]*?})/gim, '');
+
+        extract(/\.dl-horizontal ([\s\S]*?}\n})/gim, storage, content,
+          ['.dl_horizontal_true $1', 'dl', [/dd {/gim, '.dl__desc {'], [/dt {/gim, '.dl__term {']]
+        );
+        content = content.replace(/\.dl-horizontal ([\s\S]*?}\n})/gim, '');
+
+        /**
+         * Misc
+         */
+        extract(/(abbr)([\s\S]*?})/gm, storage, content,
+          ['$1$2', 'raw-text', [/abbr\[/gim, '.raw-text abbr[']],
+          ['$1$2', 'abbr', [/abbr\[/gim, '.abbr[']]
+        );
+        content = content.replace(/abbr([\s\S]*?})/gm, '');
+
+        extract(/\.initialism ([\s\S]*?})/gim, storage, content,
+          ['.initialism $1', 'initialism']
+        );
+        content = content.replace(/\.initialism ([\s\S]*?})/gim, '');
+
+        extract(/(blockquote) ([\s\S]*?}\n})/gim, storage, content,
+          ['.raw-text $1 $2', 'raw-text'],
+          ['.$1 $2', 'blockquote',
+            ['p, ul, ol {', 'p, .p, ul, ol, .list {'],
+            ['footer, small, .small {', 'footer, .footer, small, .small {'],
+          ]
+        );
+        content = content.replace(/(blockquote) ([\s\S]*?}\n})/gim, '');
+
+        content = content.replace(', blockquote.pull-right', '');
+        extract(/(\.blockquote-reverse) ([\s\S]*?}\n})/gim, storage, content,
+          ['.blockquote_reverse_true $2', 'blockquote',
+            ['p, ul, ol {', 'p, .p, ul, ol, .list {'],
+            ['footer, small, .small {', 'footer, .footer, small, .small {'],
+          ]
+        );
+        content = content.replace(/(\.blockquote-reverse) ([\s\S]*?}\n})/gim, '');
+
+        extract(/(blockquote:before, blockquote:after) ([\s\S]*?})/gm, storage, content,
+          ['$1 $2', 'raw-text', [/blockquote/gim, '.blockquote']],
+          ['$1 $2', 'blockquote', [/blockquote/gim, '.blockquote']]
+        );
+        content = content.replace(/(blockquote:before, blockquote:after) ([\s\S]*?})/gm, '');
+
+        // address
+        extract(/(address) ([\s\S]*?})/gim, storage, content,
+          ['.raw-text $1 $2', 'raw-text'],
+          ['.$1 $2', 'address']
+        );
+        content = content.replace(/(address) ([\s\S]*?})/gim, '');
+      }
+
+      if (filename === 'grid') {
+        content = content.replace(/\.container/g, '.grid');
+        content = content.replace(/\.container-fluid/g, '.grid_fluid_true');
+        content = content.replace(/\.row/g, '.grid__row');
+
+        storage.add(level, filename, content);
+      }
+
+      if (filename === 'buttons') {
+        content = content.replace(/\&\.(active|disabled)/g, '&.btn_state_$1');
+        content = content.replace(/\.btn-(lg|sm|xs)/g, '.btn_size_$1');
+        content = content.replace(/\.btn-(default|primary|success|info|warning|danger)/g, '.btn_theme_$1');
+        content = content.replace(/\.btn-link/g, '.btn_link_true');
+        content = content.replace(/\.btn-block/g, '.btn_block_true');
+
+        storage.add(level, filename, content);
+      }
+
+      cb();
+    }))
+    .on('finish', done);
+});
+
+/**
+ * Placing blocks in proper way
+ */
+gulp.task('place-blocks', function() {
+  return gulp.src('gulpfile.js')
+    .pipe(placeBlocks())
+    .pipe(gulp.dest('levels'));
 });
 
 /**
@@ -72,422 +424,18 @@ gulp.task('compile-blocks', function() {
     .pipe(gulp.dest('.'));
 });
 
-gulp.task('copy-fonts', function() {
-  return gulp.src(['node_modules/bootstrap/fonts/**']).pipe(gulp.dest('fonts'));
-});
-
-/**
- * Variables level
- */
-gulp.task('copy-variables', function() {
-  return gulp.src(['variables.less'].map(prefix))
-    .pipe(replace('../fonts', '../../../fonts'))
-    .pipe(rename(prependFilename))
-    .pipe(gulp.dest('levels/variables'));
-});
-
-/**
- * Mixins level
- */
-gulp.task('copy-mixins', ['copy-mixins-itself'], function() {
-  return gulp.src(['mixins.less'].map(prefix))
-    .pipe(rename(prependFilename))
-    .pipe(gulp.dest('levels/mixins'));
-});
-
-gulp.task('copy-mixins-itself', function() {
-  return gulp.src(['mixins/**.less'].map(prefix))
-    // clearfix fix
-    .pipe(replace('&:extend(.clearfix all);', '.clearfix()'))
-    // grid
-    .pipe(replace(/\.container-fixed/g, '.grid-fixed'))
-    .pipe(replace(/\.col-(xs|sm|md|lg)-@{index}/g, '.grid__cell-$1_size_@{index}'))
-    .pipe(replace(/\.col-@{class}-@{index}/g, '.grid__cell-@{class}_size_@{index}'))
-    .pipe(replace(/\.col-@{class}-(push|pull|offset)-@{index}/g, '.grid__cell-@{class}_$1_@{index}'))
-    .pipe(replace(/\.col-@{class}-(push|pull)-0/g, '.grid__cell-@{class}_$1_0'))
-    .pipe(gulp.dest('levels/mixins/mixins/mixins'));
-});
-
-/**
- * normalize level
- */
-gulp.task('copy-normalize', function() {
-  return gulp.src(['normalize.less'].map(prefix))
-    .pipe(rename(prependFilename))
-    .pipe(gulp.dest('levels/normalize'));
-});
-
-/**
- * Print level
- */
-gulp.task('copy-print', function() {
-  return gulp.src(['print.less'].map(prefix))
-    .pipe(rename(prependFilename))
-    .pipe(gulp.dest('levels/print'));
-});
-
-/**
- * Glyph level
- */
-gulp.task('copy-glyphicons', function() {
-  return gulp.src(['glyphicons.less'].map(prefix))
-    .pipe(rename(prependFilename))
-    .pipe(replace(/.glyphicon-/g, '.glyphicon_item_'))
-    .pipe(gulp.dest('levels/glyphicons'));
-});
-
-/**
- * Core CSS level
- *
- * // Core CSS
- * @import "scaffolding.less";
- * @import "type.less";
- * @import "code.less";
- * @import "grid.less";
- * @import "tables.less";
- * @import "forms.less";
- * @import "buttons.less";
- */
-
-// scaffolding should 100% be in upper level
-gulp.task('copy-scaffolding', function() {
-  return gulp.src(['scaffolding.less'].map(prefix))
-    .pipe(through.obj(function(file, enc, cb) {
-      var self = this;
-      var block = 'scaffolding';
-      var storage = {};
-      var content = file.contents.toString('utf8');
-
-      storage = extract(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim, storage, content,
-        ['.img_$1_true $2', 'img']
-      );
-      content = content.replace(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim, '');
-
-      storage = extract(/hr ([\s\S]*?})/gim, storage, content,
-        ['.raw-text hr $1', 'raw-text'],
-        ['.hr $1', 'hr']
-      );
-      content = content.replace(/hr ([\s\S]*?})/gim, '');
-
-      storage = extract(/\.sr-only ({[\s\S]*?})/gim, storage, content,
-        ['.sr-only $1', 'sr-only']
-      );
-      content = content.replace(/\.sr-only ({[\s\S]*?})/gim, '');
-
-      storage = extract(/\.sr-only-focusable ([\s\S]*?}\n})/gim, storage, content,
-        ['.sr-only-focusable $1', 'sr-only']
-      );
-      content = content.replace(/\.sr-only-focusable ([\s\S]*?}\n})/gim, '');
-
-      // console.log('STORAGE');
-      // console.log(storage);
-
-      Object.keys(storage).forEach(function(block) {
-        self.push(new File({
-          path: getBlockPath('core-css', block),
-          contents: new Buffer(storage[block].join('\n'))
-        }));
-      });
-
-      self.push(new File({
-        path: getBlockPath('scaffolding', block),
-        contents: new Buffer(content)
-      }));
-      return cb();
-    }))
-    .pipe(gulp.dest('levels'));
-});
-
-gulp.task('copy-core-css', function(cb) {
-  sequence('copy-type', 'copy-grid', 'copy-buttons', cb);
-});
-
-gulp.task('copy-type', function(cb) {
-
-  return gulp.src(['type.less'].map(prefix))
-    .pipe(replace(/(,[\s]*)/g, ', '))
-    .pipe(replace(/[,]* \.h(1|2|3|4|5|6)/g, ''))
-    .pipe(through.obj(function(file, enc, cb) {
-      var self = this;
-      var storage = {};
-      var content = file.contents.toString('utf8');
-
-      /**
-       * Headings
-       */
-
-      // h1, h2, h3, h4, h5, h6
-      storage = extract(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim, storage, content,
-        [[1, 2, 3, 4, 5, 6].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
-        [[1, 2, 3, 4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
-      );
-      content = content.replace(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim, '');
-
-      // h1, h2, h3
-      storage = extract(/h1, h2, h3 ([\s\S]*?}\n})/gim, storage, content,
-        [[1, 2, 3].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
-        [[1, 2, 3].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
-      );
-      content = content.replace(/h1, h2, h3 ([\s\S]*?}\n})/gim, '');
-
-      // h4, h5, h6
-      storage = extract(/h4, h5, h6 ([\s\S]*?}\n})/gim, storage, content,
-        [[4, 5, 6].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
-        [[4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
-      );
-      content = content.replace(/h4, h5, h6 ([\s\S]*?}\n})/gim, '');
-
-      // h(1|2|3|4|5|6)
-      storage = extract(/h(1|2|3|4|5|6) ([\s\S]*?})/gim, storage, content,
-        ['.raw-text h$1 $2', 'raw-text'],
-        ['.heading_level_$1 $2', 'heading']
-      );
-      content = content.replace(/h(1|2|3|4|5|6) ([\s\S]*?})/gim, '');
-
-      /**
-       * Body text
-       */
-      // p
-      storage = extract(/p ({[\s\S]*?})/gim, storage, content,
-        ['.raw-text p $1', 'raw-text'],
-        ['.p $1', 'p']
-      );
-      content = content.replace(/p ({[\s\S]*?})/gim, '');
-
-      // .lead
-      storage = extract(/\.lead ([\s\S]*?}\n})/gim, storage, content,
-        ['.lead $1', 'lead']
-      );
-      content = content.replace(/\.lead ([\s\S]*?}\n})/gim, '');
-
-      /**
-       * Emphasis & misc
-       */
-      // .small
-      content = content.replace(/\nsmall, \.small {/g, '\ntempsmall {');
-      storage = extract(/tempsmall ({[\s\S]*?})/gim, storage, content,
-        ['.raw-text small $1', 'raw-text'],
-        ['.small $1', 'small']
-      );
-      content = content.replace(/tempsmall ({[\s\S]*?})/gim, '');
-
-      // .cite
-      storage = extract(/cite ({[\s\S]*?})/gim, storage, content,
-        ['.raw-text cite $1', 'raw-text'],
-        ['.cite $1', 'cite']
-      );
-      content = content.replace(/cite ({[\s\S]*?})/gim, '');
-
-      // .mark
-      content = content.replace(/mark, .mark {/g, 'mark {');
-      storage = extract(/mark ({[\s\S]*?})/gim, storage, content,
-        ['.raw-text mark $1', 'raw-text'],
-        ['.mark $1', 'mark']
-      );
-      content = content.replace(/mark ({[\s\S]*?})/gim, '');
-
-      // text
-      storage = extract(/\.text-(left|right|center|justify|nowrap) ([\s\S]*?})/gim, storage, content,
-        ['.text_align_$1 $2', 'text']
-      );
-      content = content.replace(/\.text-(left|right|center|justify|nowrap) ([\s\S]*?})/gim, '');
-
-      storage = extract(/\.text-(lowercase|uppercase|capitalize) ([\s\S]*?})/gim, storage, content,
-        ['.text_case_$1 $2', 'text']
-      );
-      content = content.replace(/\.text-(lowercase|uppercase|capitalize) ([\s\S]*?})/gim, '');
-
-      storage = extract(/\.text-muted ([\s\S]*?})/gim, storage, content,
-        ['.text_muted_true $1', 'text']
-      );
-      content = content.replace(/\.text-muted ([\s\S]*?})/gim, '');
-
-      storage = extract(/\.text-(primary|success|info|warning|danger) ([\s\S]*?})/gim, storage, content,
-        ['.text_theme_$1 $2', 'text']
-      );
-      content = content.replace(/\.text-(primary|success|info|warning|danger) ([\s\S]*?})/gim, '');
-
-      // bg
-      storage = extract(/\.bg-(primary|success|info|warning|danger) ([\s\S]*?})/gim, storage, content,
-        ['.bg_theme_$1 $2', 'bg']
-      );
-      content = content.replace(/\.bg-(primary|success|info|warning|danger) ([\s\S]*?})/gim, '');
-
-      /**
-       * Page header
-       */
-      storage = extract(/\.page-header ([\s\S]*?})/gim, storage, content,
-        ['.page-header $1', 'page-header']
-      );
-      content = content.replace(/\.page-header ([\s\S]*?})/gim, '');
-
-      Object.keys(storage).forEach(function(block) {
-        self.push(new File({
-          path: getBlockPath('core-css', block),
-          contents: new Buffer(storage[block].join('\n'))
-        }));
-      });
-
-      self.push(new File({
-        path: getBlockPath('core-css', 'type'),
-        contents: new Buffer(content)
-      }));
-
-      return cb();
-    }))
-    .pipe(gulp.dest('levels'));
-
-  gulp.src()
-
-
-
-    /**
-     * Lists
-     */
-    .pipe(extractSelector(/\nul, ol[\s\S]*?}\n}/g, 'core-css', 'raw-text', function(item) {
-      return item.replace(/\nul, ol/g, '.raw-text ul, .raw-text ol');
-    }))
-    .pipe(replace(/\nul, ol {/g, '\n.list {'))
-    .pipe(replace(/  ul, ol {/g, '  .list {'))
-    .pipe(extractSelector(/\.list {[\s\S]*?}\n}/g, 'core-css', 'list'))
-    .pipe(replace(/\.list {[\s\S]*?}\n}/g, ''))
-    .pipe(wait(500))
-
-    .pipe(extractSelector(/\.list-unstyled {[\s\S]*?}/g, 'core-css', 'list', function(item) {
-      return item.replace(/\.list-unstyled {/g, '.list_unstyled_true {');
-    }))
-    .pipe(replace(/\.list-unstyled {[\s\S]*?}/g, ''))
-    .pipe(replace(/\.list-unstyled/g, '.list_unstyled_true'))
-    .pipe(wait(500))
-
-    .pipe(extractSelector(/\.list-inline {[\s\S]*?}\n}/g, 'core-css', 'list', function(item) {
-      return item.replace(/\.list-inline {/g, '.list_inline_true {').replace(/> li/g, '.list__item');
-    }))
-    .pipe(replace(/\.list-inline {[\s\S]*?}\n}/g, ''))
-    .pipe(wait(500))
-
-    .pipe(extractSelector(/dl {[\s\S]*?}/g, 'core-css', 'raw-text', prependRawText))
-    .pipe(extractSelector(/dt, dd {[\s\S]*?}/g, 'core-css', 'raw-text', function(item) {
-      return item.replace(/dt, dd/g, '.raw-text dt, .raw-text dd');
-    }))
-    .pipe(extractSelector(/\ndt {[\s\S]*?}/g, 'core-css', 'raw-text', function(item) {
-      return prependRawText(item.replace(/\nd/g, 'd'));
-    }))
-    .pipe(extractSelector(/\ndd {[\s\S]*?}/g, 'core-css', 'raw-text', function(item) {
-      return prependRawText(item.replace(/\nd/g, 'd'));
-    }))
-
-    .pipe(replace(/dl {/g, '.dl {'))
-    .pipe(extractSelector(/\.dl {[\s\S]*?}/g, 'core-css', 'dl'))
-    .pipe(replace(/\.dl {[\s\S]*?}/g, ''))
-    .pipe(replace(/dt, dd {/g, '.dl__term, .dl__desc {'))
-    .pipe(extractSelector(/\.dl__term, .dl__desc {[\s\S]*?}/g, 'core-css', 'dl'))
-    .pipe(wait(500))
-
-    .pipe(replace(/\.dl__term, .dl__desc {[\s\S]*?}/g, ''))
-    .pipe(replace(/dt {/g, '.dl__term {'))
-    .pipe(replace(/dd {/g, '.dl__desc {'))
-    .pipe(extractSelector(/\.dl__term {[\s\S]*?}/, 'core-css', 'dl'))
-    .pipe(extractSelector(/\.dl__desc {[\s\S]*?}/, 'core-css', 'dl'))
-    .pipe(replace(/\.dl__term {[\s\S]*?}/, ''))
-    .pipe(replace(/\.dl__desc {[\s\S]*?}/, ''))
-    .pipe(wait(500))
-
-    .pipe(replace(/\.dl-horizontal {/g, '.dl_horizontal_true {'))
-    .pipe(extractSelector(/\.dl_horizontal_true {[\s\S]*?}\n}/g, 'core-css', 'dl'))
-    .pipe(replace(/\.dl_horizontal_true {[\s\S]*?}\n}/g, ''))
-    .pipe(wait(500))
-
-    /**
-     * Misc
-     */
-    .pipe(extractSelector(/abbr\[title\], \/\/[\s\S]*?\nabbr\[data-original-title\] {[\s\S]*?}/g, 'core-css', 'raw-text', function(item) {
-      return item.replace(/abbr\[/g, '.raw-text abbr[');
-    }))
-    .pipe(extractSelector(/abbr\[title\], \/\/[\s\S]*?\nabbr\[data-original-title\] {[\s\S]*?}/g, 'core-css', 'abbr', function(item) {
-      return item.replace(/abbr\[/g, '.abbr[');
-    }))
-    .pipe(replace(/abbr\[title\], \/\/[\s\S]*?\nabbr\[data-original-title\] {[\s\S]*?}/g, ''))
-    .pipe(wait(500))
-
-    .pipe(extractSelector(/\.initialism {[\s\S]*?}/g, 'core-css', 'initialism'))
-    .pipe(replace(/\.initialism {[\s\S]*?}/g, ''))
-    .pipe(wait(500))
-
-    .pipe(extractSelector(/blockquote {[\s\S]*?}\n}/, 'core-css', 'raw-text', prependRawText))
-    .pipe(extractSelector(/blockquote {[\s\S]*?}\n}/, 'core-css', 'blockquote', function(item) {
-      return item
-          .replace(/blockquote {/g, '.blockquote {')
-          .replace('p, ul, ol {', 'p, .p, ul, ol, .list {')
-          .replace('footer, small, .small {', 'footer, .footer, small, .small {');
-    }))
-    .pipe(replace(/blockquote {[\s\S]*?}\n}/, ''))
-    .pipe(wait(500))
-
-    .pipe(replace('.blockquote-reverse, blockquote.pull-right {', '.blockquote_reverse_true {'))
-    .pipe(extractSelector(/\.blockquote_reverse_true {[\s\S]*?}\n}/g, 'core-css', 'blockquote', function(item) {
-      return item.replace('footer, small, .small {', 'footer, .footer, small, .small {');
-    }))
-    .pipe(replace(/\.blockquote_reverse_true {[\s\S]*?}\n}/g, ''))
-
-    .pipe(extractSelector(/blockquote:before, blockquote:after {[\s\S]*?}/g, 'core-css', 'raw-text', function(item) {
-      return item.replace(/blockquote/g, '.raw-text blockquote');
-    }))
-    .pipe(extractSelector(/blockquote:before, blockquote:after {[\s\S]*?}/g, 'core-css', 'blockquote', function(item) {
-      return item.replace(/blockquote/g, '.blockquote');
-    }))
-    .pipe(replace(/blockquote:before, blockquote:after {[\s\S]*?}/g, ''))
-    .pipe(wait(500))
-
-    .pipe(extractSelector(/address {[\s\S]*?}/g, 'core-css', 'raw-text', prependRawText))
-    .pipe(extractSelector(/address {[\s\S]*?}/g, 'core-css', 'address'))
-    .pipe(replace(/address {[\s\S]*?}/g, ''))
-    .pipe(wait(500))
-
-    .pipe(rename(prependFilename))
-    .pipe(gulp.dest('levels/core-css'));
-});
-
-gulp.task('copy-grid', function() {
-  return gulp.src(['grid.less'].map(prefix))
-    // grid
-    .pipe(replace(/\.container/g, '.grid'))
-    // _fluid
-    .pipe(replace(/\.container-fluid/g, '.grid_fluid_true'))
-    // __row
-    .pipe(replace(/\.row/g, '.grid__row'))
-    .pipe(rename(prependFilename))
-    .pipe(gulp.dest('levels/core-css'));
-});
-
-gulp.task('copy-buttons', function() {
-  return gulp.src(['buttons.less'].map(prefix))
-    // _state
-    .pipe(replace(/\&\.(active|disabled)/g, '&.btn_state_$1'))
-    // _size
-    .pipe(replace(/\.btn-(lg|sm|xs)/g, '.btn_size_$1'))
-    // _theme
-    .pipe(replace(/\.btn-(default|primary|success|info|warning|danger)/g, '.btn_theme_$1'))
-    // _link_true
-    .pipe(replace(/\.btn-link/g, '.btn_link_true'))
-    // _block_true
-    .pipe(replace(/\.btn-block/g, '.btn_block_true'))
-    .pipe(rename(prependFilename))
-    .pipe(gulp.dest('levels/core-css'));
-});
-
 /**
  * Docs
  */
-gulp.task('copy-docs', function(cb) {
-  sequence(['copy-docs-yamlconfig', 'copy-docs-site'], cb);
+gulp.task('docs', function(cb) {
+  sequence(['docs-yamlconfig', 'docs-site'], cb);
 });
 
-gulp.task('copy-docs-yamlconfig', function() {
+gulp.task('docs-yamlconfig', function() {
   return gulp.src('./node_modules/bootstrap/_config.yml').pipe(gulp.dest('./'));
 });
 
-gulp.task('copy-docs-site', function() {
+gulp.task('docs-site', function() {
   return gulp.src('./node_modules/bootstrap/docs/**').pipe(gulp.dest('./docs/'));
 });
 
@@ -496,56 +444,54 @@ gulp.task('copy-docs-site', function() {
  */
 var prefix = function(item) { return join('node_modules/bootstrap/less', item); };
 var prependFilename = function(path) { path.dirname += '/' + path.basename; };
-var prependRawText = function(item) { return '.raw-text ' + item; };
-var prependHeaderRawText = function(item) { return item.replace(/h(1|2|3|4|5|6)/g, '\n.raw-text h$1'); };
-var transfromHeading = function(item) { return item.replace(/\.h(1|2|3|4|5|6)/g, '\n.heading_level_$1'); };
 var appendNL = function(item) { return item + '\n'; };
 var getBlockPath = function(level, block) { return join(level, block, block + '.less'); };
-var extractSelector = function(reg, level, block, transform) {
-  transform = transform || function(item) { return item; };
-  var folder = path.join('levels', level, block);
-  var filename = path.join(folder, block + '.less');
-  console.log('filename', filename);
+var extractFactory = function(level) {
+  return function(matcher, storage, content) {
+    var matched = content.match(matcher);
+    if (!matched || matched.length === 0) {
+      return storage;
+    }
 
-  return through.obj(function(file, enc, cb) {
+    getArgs.apply(null, arguments).slice(3).map(function(pair) {
+      var block = pair[1];
+      var innerTransforms = pair.slice(2);
+      return {
+        transform: function(item) { return item.replace(matcher, pair[0]); },
+        block: block,
+        innerTransform: function(item) {
+          innerTransforms.forEach(function(transformPair) {
+            item = item.replace(transformPair[0], transformPair[1]);
+          });
 
-    var contents = file.contents.toString('utf8');
-    var res = contents.match(reg);
-    vfs.makeDir(folder).then(function() {
-      if (res && res.length > 0) {
-        vfs.append(filename, res.map(transform).map(appendNL).join(''), console.log);
-      }
+          return item;
+        }
+      };
+    }).forEach(function(item) {
+      var res = matched.map(item.transform).map(item.innerTransform).map(appendNL).join('\n');
+
+      storage.add(level, item.block, res);
     });
-
-    this.push(file);
-    return cb();
+  };
+};
+var placeBlocks = function() {
+  return through.obj(function(file, enc, cb) {
+    var self = this;
+    console.log(Object.keys(storage.storage));
+    Object.keys(storage.storage).forEach(function(level) {
+      Object.keys(storage.storage[level]).forEach(function(block) {
+        self.push(new File({
+          path: getBlockPath(level, block),
+          contents: new Buffer(storage.get(level, block))
+        }));
+      });
+    });
   });
 };
-
-var extract = function(matcher, storage, content) {
-  var matched = content.match(matcher);
-  if (!matched || matched.length === 0) {
-    return storage;
-  }
-
-  getArgs.apply(null, arguments).slice(3).map(function(pair) {
-    return {
-      transform: function(item) { return item.replace(matcher, pair[0]); },
-      block: pair[1]
-    };
-  }).forEach(function(item) {
-    if (!storage[item.block]) { storage[item.block] = []; }
-
-    storage[item.block].push(matched.map(item.transform).map(appendNL).join('\n'));
-  });
-
-  return storage;
-};
-
-function getArgs() {
+var getArgs = function() {
   var args = new Array(arguments.length);
   for (var i = 0; i < args.length; ++i) {
     args[i] = arguments[i];
   }
   return args;
-}
+};
