@@ -120,7 +120,7 @@ gulp.task('process-reset-and-dependencies', function(done) {
  * Core CSS
  */
 gulp.task('process-core-css', function(done) {
-  return gulp.src([
+  gulp.src([
     'scaffolding.less',
     'type.less',
     // 'code.less',
