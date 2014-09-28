@@ -43,7 +43,6 @@ gulp.task('default', function(cb) {
  */
 gulp.task('process-blocks', function(cb) {
   sequence(
-    'copy-fonts',
     [
       'process-variables-and-mixins',
       'process-reset-and-dependencies',
@@ -51,7 +50,7 @@ gulp.task('process-blocks', function(cb) {
     ],
     'place-blocks',
     'compile-blocks',
-    cb);
+  cb);
 });
 
 /**
@@ -443,7 +442,6 @@ gulp.task('docs-site', function() {
  * Helpers
  */
 var prefix = function(item) { return join('node_modules/bootstrap/less', item); };
-var prependFilename = function(path) { path.dirname += '/' + path.basename; };
 var appendNL = function(item) { return item + '\n'; };
 var getBlockPath = function(level, block) { return join(level, block, block + '.less'); };
 var extractFactory = function(level) {
@@ -477,7 +475,6 @@ var extractFactory = function(level) {
 var placeBlocks = function() {
   return through.obj(function(file, enc, cb) {
     var self = this;
-    console.log(Object.keys(storage.storage));
     Object.keys(storage.storage).forEach(function(level) {
       Object.keys(storage.storage[level]).forEach(function(block) {
         self.push(new File({
@@ -488,6 +485,7 @@ var placeBlocks = function() {
     });
   });
 };
+
 var getArgs = function() {
   var args = new Array(arguments.length);
   for (var i = 0; i < args.length; ++i) {
