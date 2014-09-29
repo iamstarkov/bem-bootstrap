@@ -483,6 +483,7 @@ var placeBlocks = function() {
         }));
       });
     });
+    cb();
   });
 };
 
