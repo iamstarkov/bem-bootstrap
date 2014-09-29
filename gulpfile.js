@@ -11,8 +11,6 @@ var header = require('gulp-header');
 var debug = require('gulp-debug');
 var through = require('through2');
 
-
-
 var Storage = require('./storage.js');
 var storage = new Storage();
 
@@ -37,13 +35,13 @@ gulp.task('clean', function(cb) {
  * Make all the stuff
  */
 gulp.task('default', function(cb) {
-  sequence('clean', ['process-blocks', 'docs'], cb);
+  sequence('clean', ['blocks', 'docs'], cb);
 });
 
 /**
  * Copy blocks
  */
-gulp.task('process-blocks', function(cb) {
+gulp.task('blocks', function(cb) {
   sequence(
     [
       'process-variables-and-mixins',
