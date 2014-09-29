@@ -5,11 +5,11 @@
   border-top: 1px solid @hr-border;
 }
 
-.raw-text h1, 
-.raw-text h2, 
-.raw-text h3, 
-.raw-text h4, 
-.raw-text h5, 
+.raw-text h1,
+.raw-text h2,
+.raw-text h3,
+.raw-text h4,
+.raw-text h5,
 .raw-text h6 {
   font-family: @headings-font-family;
   font-weight: @headings-font-weight;
@@ -23,8 +23,8 @@
   }
 }
 
-.raw-text h1, 
-.raw-text h2, 
+.raw-text h1,
+.raw-text h2,
 .raw-text h3 {
   margin-top: @line-height-computed;
   margin-bottom: (@line-height-computed / 2);
@@ -34,8 +34,8 @@
   }
 }
 
-.raw-text h4, 
-.raw-text h5, 
+.raw-text h4,
+.raw-text h5,
 .raw-text h6 {
   margin-top: (@line-height-computed / 2);
   margin-bottom: (@line-height-computed / 2);
@@ -44,50 +44,69 @@
     font-size: 75%;
   }
 }
+
 .raw-text h1 { font-size: @font-size-h1; }
+
 .raw-text h2 { font-size: @font-size-h2; }
+
 .raw-text h3 { font-size: @font-size-h3; }
+
 .raw-text h4 { font-size: @font-size-h4; }
+
 .raw-text h5 { font-size: @font-size-h5; }
+
 .raw-text h6 { font-size: @font-size-h6; }
+
 .raw-text p {
   margin: 0 0 (@line-height-computed / 2);
 }
+
 .raw-text small {
   font-size: floor((100% * @font-size-small / @font-size-base));
 }
+
 .raw-text cite {
   font-style: normal;
 }
+
 .raw-text mark {
   background-color: @state-warning-bg;
   padding: .2em;
 }
-.raw-text ul, .raw-text ol {
+
+.raw-text ul,
+.raw-text ol {
   margin-top: 0;
   margin-bottom: (@line-height-computed / 2);
   ul, ol {
     margin-bottom: 0;
   }
 }
+
 .raw-text dl {
   margin-top: 0; // Remove browser default
   margin-bottom: @line-height-computed;
 }
-.raw-text dt, .raw-text dd {
+
+.raw-text dt,
+.raw-text dd {
   line-height: @line-height-base;
 }
+
 .raw-text dt {
   font-weight: bold;
 }
+
 .raw-text dd {
   margin-left: 0; // Undo browser default
 }
+
 .raw-text abbr[title], // Add data-* attribute to help out our tooltip plugin, per https://github.com/twbs/bootstrap/issues/5257
 .raw-text abbr[data-original-title] {
   cursor: help;
   border-bottom: 1px dotted @abbr-border-color;
 }
+
 .raw-text blockquote {
   padding: (@line-height-computed / 2) @line-height-computed;
   margin: 0 0 @line-height-computed;
@@ -113,9 +132,11 @@
     }
   }
 }
+
 .raw-text blockquote:before, .raw-text blockquote:after {
   content: "";
 }
+
 .raw-text address {
   margin-bottom: @line-height-computed;
   font-style: normal;

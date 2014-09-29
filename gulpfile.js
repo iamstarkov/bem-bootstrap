@@ -171,21 +171,21 @@ gulp.task('process-core-css', function(done) {
 
         // h1, h2, h3, h4, h5, h6
         extract(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim, storage, content,
-          [[1, 2, 3, 4, 5, 6].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
+          [[1, 2, 3, 4, 5, 6].map(function(item) { return '.raw-text h' + item; }).join(',\n') + ' $1', 'raw-text'],
           [[1, 2, 3, 4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
         );
         content = content.replace(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim, '');
 
         // h1, h2, h3
         extract(/h1, h2, h3 ([\s\S]*?}\n})/gim, storage, content,
-          [[1, 2, 3].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
+          [[1, 2, 3].map(function(item) { return '.raw-text h' + item; }).join(',\n') + ' $1', 'raw-text'],
           [[1, 2, 3].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
         );
         content = content.replace(/h1, h2, h3 ([\s\S]*?}\n})/gim, '');
 
         // h4, h5, h6
         extract(/h4, h5, h6 ([\s\S]*?}\n})/gim, storage, content,
-          [[4, 5, 6].map(function(item) { return '.raw-text ' + item; }).join(',\n') + ' $1', 'raw-text'],
+          [[4, 5, 6].map(function(item) { return '.raw-text h' + item; }).join(',\n') + ' $1', 'raw-text'],
           [[4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
         );
         content = content.replace(/h4, h5, h6 ([\s\S]*?}\n})/gim, '');
@@ -364,7 +364,7 @@ gulp.task('process-core-css', function(done) {
         content = content.replace(/(\.blockquote-reverse) ([\s\S]*?}\n})/gim, '');
 
         extract(/(blockquote:before, blockquote:after) ([\s\S]*?})/gm, storage, content,
-          ['$1 $2', 'raw-text', [/blockquote/gim, '.blockquote']],
+          ['$1 $2', 'raw-text', [/blockquote/gim, '.raw-text blockquote']],
           ['$1 $2', 'blockquote', [/blockquote/gim, '.blockquote']]
         );
         content = content.replace(/(blockquote:before, blockquote:after) ([\s\S]*?})/gm, '');
