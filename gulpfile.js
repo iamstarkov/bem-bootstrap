@@ -1,15 +1,17 @@
 'use strict';
+var path = require('path');
+var File = require('vinyl');
+
 var gulp = require('gulp');
-var join = require('path').join;
+var del = require('del');
 var sequence = require('run-sequence');
 var less = require('gulp-less');
 var replace = require('gulp-replace');
 var header = require('gulp-header');
 var debug = require('gulp-debug');
-var del = require('del');
 var through = require('through2');
-var path = require('path');
-var File = require('vinyl');
+
+
 
 var Storage = require('./storage.js');
 var storage = new Storage();
@@ -413,7 +415,7 @@ gulp.task('place-blocks', function() {
  * Compiling blocks
  */
 gulp.task('compile-blocks', function() {
-  var postfix = function(item) { return join(item, '*/*.less'); };
+  var postfix = function(item) { return path.join(item, '*/*.less'); };
   return gulp.src(levels.slice(2).map(postfix), { base: process.cwd() })
     .pipe(header([
       '@import "../../variables/variables/variables.less";',
@@ -441,9 +443,9 @@ gulp.task('docs-site', function() {
 /**
  * Helpers
  */
-var prefix = function(item) { return join('node_modules/bootstrap/less', item); };
+var prefix = function(item) { return path.join('node_modules/bootstrap/less', item); };
 var appendNL = function(item) { return item + '\n'; };
-var getBlockPath = function(level, block) { return join(level, block, block + '.less'); };
+var getBlockPath = function(level, block) { return path.join(level, block, block + '.less'); };
 var extractFactory = function(level) {
   return function(matcher, storage, content) {
     var matched = content.match(matcher);
