@@ -14,6 +14,8 @@ var through = require('through2');
 var Storage = require('./storage.js');
 var storage = new Storage();
 
+var tempTransform;
+
 var levels = [
   'variables', // less-only
   'mixins', // less-only
@@ -27,22 +29,25 @@ var levels = [
 /**
  * Clean all
  */
-gulp.task('clean', function(cb) {
-  del(['levels', 'fonts', 'docs', '_config.yml'], cb);
+gulp.task('clean-docs', function(cb) {
+  del(['fonts', 'docs', '_config.yml'], cb);
+});
+
+gulp.task('clean-blocks', function(cb) {
+  del('levels', cb);
 });
 
 /**
  * Make all the stuff
  */
-gulp.task('default', function(cb) {
-  sequence('clean', ['blocks', 'docs'], cb);
-});
+gulp.task('default', ['blocks', 'docs']);
 
 /**
  * Copy blocks
  */
 gulp.task('blocks', function(cb) {
   sequence(
+    'clean-blocks',
     [
       'process-variables-and-mixins',
       'process-reset-and-dependencies',
@@ -122,7 +127,7 @@ gulp.task('process-core-css', function(done) {
   gulp.src([
     'scaffolding.less',
     'type.less',
-    // 'code.less',
+    'code.less',
     'grid.less',
     // 'tables.less',
     // 'forms.less',
@@ -377,6 +382,45 @@ gulp.task('process-core-css', function(done) {
         content = content.replace(/(address) ([\s\S]*?})/gim, '');
       }
 
+      if (filename === 'code') {
+        content = content.replace(/,\n/g, ', ');
+
+        ['code', 'kbd', 'pre', 'samp'].forEach(function(item) {
+          extract(/(code, kbd, pre, samp) ([\s\S]*?})/gim, storage, content,
+            [ '.' + item + ' $2', item],
+            [ '.raw-text ' + item + ' $2', 'raw-text']
+          );
+        });
+        content = content.replace(/(code, kbd, pre, samp) ([\s\S]*?})/gim, '');
+
+        tempTransform = ['code {', 'codetemp {'];
+        content = content.replace.apply(content, tempTransform);
+
+        tempTransform.reverse();
+        extract(/(codetemp) ({[\s\S]*?})/gim, storage, content,
+          [ '.$1 $2', 'code', tempTransform],
+          [ '.raw-text $1 $2', 'raw-text', tempTransform]
+        );
+        content = content.replace(/(codetemp) ({[\s\S]*?})/, '');
+
+        extract(/(kbd) ({[\s\S]*?}\n})/gim, storage, content,
+          [ '.$1 $2', 'kbd', [/(\n[\s]+)kbd/, '$1.kbd']],
+          [ '.raw-text $1 $2', 'raw-text']
+        );
+        content = content.replace(/(kbd) ({[\s\S]*?}\n})/, '');
+
+        extract(/(pre) ({[\s\S]*?}\n})/gim, storage, content,
+          [ '.$1 $2', 'pre', ['code {', '.code {']],
+          [ '.raw-text $1 $2', 'raw-text']
+        );
+        content = content.replace(/(pre) ({[\s\S]*?}\n})/, '');
+
+        extract(/(\.pre-scrollable) ({[\s\S]*?})/gim, storage, content,
+          [ '$1 $2', 'pre', ['pre-scrollable', 'pre_scrollable_true']]
+        );
+        content = content.replace(/(\.pre-scrollable) ({[\s\S]*?})/, '');
+      }
+
       if (filename === 'grid') {
         content = content.replace(/\.container/g, '.grid');
         content = content.replace(/\.container-fluid/g, '.grid_fluid_true');
@@ -427,7 +471,7 @@ gulp.task('compile-blocks', function() {
  * Docs
  */
 gulp.task('docs', function(cb) {
-  sequence(['docs-yamlconfig', 'docs-site'], cb);
+  sequence('clean-docs', ['docs-yamlconfig', 'docs-site'], cb);
 });
 
 gulp.task('docs-yamlconfig', function() {

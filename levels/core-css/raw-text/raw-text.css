@@ -153,3 +153,56 @@
   font-style: normal;
   line-height: 1.42857143;
 }
+.raw-text code {
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+.raw-text kbd {
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+.raw-text pre {
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+.raw-text samp {
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+.raw-text code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.raw-text kbd {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #ffffff;
+  background-color: #333333;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+.raw-text kbd kbd {
+  padding: 0;
+  font-size: 100%;
+  box-shadow: none;
+}
+.raw-text pre {
+  display: block;
+  padding: 9.5px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.42857143;
+  word-break: break-all;
+  word-wrap: break-word;
+  color: #333333;
+  background-color: #f5f5f5;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+}
+.raw-text pre code {
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: transparent;
+  border-radius: 0;
+}
