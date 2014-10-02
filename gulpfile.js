@@ -13,9 +13,6 @@ var through = require('through2');
 
 var storage = new (require('./storage.js'))();
 var prefix = require('./prefix-levels');
-var extractFactory = require('./extract');
-
-var tempTransform;
 
 var levels = [
   'variables', // less-only
@@ -136,308 +133,205 @@ gulp.task('process-core-css', function(done) {
   ].map(prefix))
     .pipe(replace('&:extend(.clearfix all)', '.clearfix()'))
     .pipe(through.obj(function(file, enc, cb) {
-      var content = file.contents.toString('utf8');
       var filename = path.basename(file.relative, '.less');
-      var level = 'core-css';
-      var extract = extractFactory(level);
+      storage.content = file.contents.toString('utf8');
+      storage.level = 'core-css';
 
       if (filename === 'scaffolding') {
 
-        extract(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim, storage, content,
-          ['.img_$1_true $2', 'img']
-        );
-        content = content.replace(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim, '');
+        storage
+          .cut(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim,
+            ['.img_$1_true $2', 'img'])
+          .cut(/hr ([\s\S]*?})/gim,
+            ['.raw-text hr $1', 'raw-text'],
+            ['.hr $1', 'hr'])
+          .cut(/\.sr-only ({[\s\S]*?})/gim,
+            ['.sr-only $1', 'sr-only'])
+          .cut(/\.sr-only-focusable ([\s\S]*?}\n})/gim,
+            ['.sr-only-focusable $1', 'sr-only']);
 
-        extract(/hr ([\s\S]*?})/gim, storage, content,
-          ['.raw-text hr $1', 'raw-text'],
-          ['.hr $1', 'hr']
-        );
-        content = content.replace(/hr ([\s\S]*?})/gim, '');
-
-        extract(/\.sr-only ({[\s\S]*?})/gim, storage, content,
-          ['.sr-only $1', 'sr-only']
-        );
-        content = content.replace(/\.sr-only ({[\s\S]*?})/gim, '');
-
-        extract(/\.sr-only-focusable ([\s\S]*?}\n})/gim, storage, content,
-          ['.sr-only-focusable $1', 'sr-only']
-        );
-        content = content.replace(/\.sr-only-focusable ([\s\S]*?}\n})/gim, '');
-
-        storage.add(filename, filename, content);
+        storage.add(filename, filename, storage.content);
       }
 
       if (filename === 'type') {
-        content = content.replace(/(,[\s]*)/g, ', ');
-        content = content.replace(/[,]* \.h(1|2|3|4|5|6)/g, '');
+        storage.content = storage.content.replace(/(,[\s]*)/g, ', ');
+        storage.content = storage.content.replace(/[,]* \.h(1|2|3|4|5|6)/g, '');
 
-        /**
-         * Headings
-         */
+        storage
+          /**
+           * Headings
+           */
+          // h1, h2, h3, h4, h5, h6
+          .cut(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim,
+            [[1, 2, 3, 4, 5, 6].map(function(item) { return '.raw-text h' + item; }).join(',\n') + ' $1', 'raw-text'],
+            [[1, 2, 3, 4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
+          )
+          // h1, h2, h3
+          .cut(/h1, h2, h3 ([\s\S]*?}\n})/gim,
+            [[1, 2, 3].map(function(item) { return '.raw-text h' + item; }).join(',\n') + ' $1', 'raw-text'],
+            [[1, 2, 3].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
+          )
+          // h4, h5, h6
+          .cut(/h4, h5, h6 ([\s\S]*?}\n})/gim,
+            [[4, 5, 6].map(function(item) { return '.raw-text h' + item; }).join(',\n') + ' $1', 'raw-text'],
+            [[4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
+          )
+          // h(1|2|3|4|5|6)
+          .cut(/h(1|2|3|4|5|6) ([\s\S]*?})/gim,
+            ['.raw-text h$1 $2', 'raw-text'],
+            ['.heading_level_$1 $2', 'heading'])
 
-        // h1, h2, h3, h4, h5, h6
-        extract(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim, storage, content,
-          [[1, 2, 3, 4, 5, 6].map(function(item) { return '.raw-text h' + item; }).join(',\n') + ' $1', 'raw-text'],
-          [[1, 2, 3, 4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
-        );
-        content = content.replace(/h1, h2, h3, h4, h5, h6 ([\s\S]*?}\n})/gim, '');
-
-        // h1, h2, h3
-        extract(/h1, h2, h3 ([\s\S]*?}\n})/gim, storage, content,
-          [[1, 2, 3].map(function(item) { return '.raw-text h' + item; }).join(',\n') + ' $1', 'raw-text'],
-          [[1, 2, 3].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
-        );
-        content = content.replace(/h1, h2, h3 ([\s\S]*?}\n})/gim, '');
-
-        // h4, h5, h6
-        extract(/h4, h5, h6 ([\s\S]*?}\n})/gim, storage, content,
-          [[4, 5, 6].map(function(item) { return '.raw-text h' + item; }).join(',\n') + ' $1', 'raw-text'],
-          [[4, 5, 6].map(function(item) { return '.heading_level_' + item; }).join(',\n') + ' $1', 'heading']
-        );
-        content = content.replace(/h4, h5, h6 ([\s\S]*?}\n})/gim, '');
-
-        // h(1|2|3|4|5|6)
-        extract(/h(1|2|3|4|5|6) ([\s\S]*?})/gim, storage, content,
-          ['.raw-text h$1 $2', 'raw-text'],
-          ['.heading_level_$1 $2', 'heading']
-        );
-        content = content.replace(/h(1|2|3|4|5|6) ([\s\S]*?})/gim, '');
-
-        /**
-         * Body text
-         */
-        // p
-        extract(/p ({[\s\S]*?})/gim, storage, content,
-          ['.raw-text p $1', 'raw-text'],
-          ['.p $1', 'p']
-        );
-        content = content.replace(/p ({[\s\S]*?})/gim, '');
-
-        // .lead
-        extract(/\.lead ([\s\S]*?}\n})/gim, storage, content,
-          ['.lead $1', 'lead']
-        );
-        content = content.replace(/\.lead ([\s\S]*?}\n})/gim, '');
+          /**
+           * Body text
+           */
+          // p
+          .cut(/p ({[\s\S]*?})/gim,
+            ['.raw-text p $1', 'raw-text'],
+            ['.p $1', 'p'])
+          // .lead
+          .cut(/\.lead ([\s\S]*?}\n})/gim,
+            ['.lead $1', 'lead']);
 
         /**
          * Emphasis & misc
          */
         // .small
-        content = content.replace(/\nsmall, \.small {/g, '\ntempsmall {');
-        extract(/tempsmall ({[\s\S]*?})/gim, storage, content,
-          ['.raw-text small $1', 'raw-text'],
-          ['.small $1', 'small']
-        );
-        content = content.replace(/tempsmall ({[\s\S]*?})/gim, '');
-
-        // .cite
-        extract(/cite ({[\s\S]*?})/gim, storage, content,
-          ['.raw-text cite $1', 'raw-text'],
-          ['.cite $1', 'cite']
-        );
-        content = content.replace(/cite ({[\s\S]*?})/gim, '');
+        storage
+          .cut(/small ({[\s\S]*?})/im,
+            ['.raw-text small $1', 'raw-text'],
+            ['.small $1', 'small'])
+          // .cite
+          .cut(/cite ({[\s\S]*?})/gim,
+            ['.raw-text cite $1', 'raw-text'],
+            ['.cite $1', 'cite'])
 
         // .mark
-        content = content.replace(/mark, .mark {/g, 'mark {');
-        extract(/mark ({[\s\S]*?})/gim, storage, content,
-          ['.raw-text mark $1', 'raw-text'],
-          ['.mark $1', 'mark']
-        );
-        content = content.replace(/mark ({[\s\S]*?})/gim, '');
+          .replace(/mark, .mark {/g, 'mark {')
+          .cut(/mark ({[\s\S]*?})/gim,
+            ['.raw-text mark $1', 'raw-text'],
+            ['.mark $1', 'mark'])
+          // text
+          .cut(/\.text-(left|right|center|justify|nowrap) ([\s\S]*?})/gim,
+            ['.text_align_$1 $2', 'text'])
+          .cut(/\.text-(lowercase|uppercase|capitalize) ([\s\S]*?})/gim,
+            ['.text_case_$1 $2', 'text'])
+          .cut(/\.text-muted ([\s\S]*?})/gim,
+            ['.text_muted_true $1', 'text'])
+          .cut(/\.text-(primary|success|info|warning|danger) ([\s\S]*?})/gim,
+            ['.text_theme_$1 $2', 'text'])
+          // bg
+          .cut(/\.bg-(primary|success|info|warning|danger) ([\s\S]*?})/gim,
+            ['.bg_theme_$1 $2', 'bg'])
 
-        // text
-        extract(/\.text-(left|right|center|justify|nowrap) ([\s\S]*?})/gim, storage, content,
-          ['.text_align_$1 $2', 'text']
-        );
-        content = content.replace(/\.text-(left|right|center|justify|nowrap) ([\s\S]*?})/gim, '');
+          /**
+           * Page header
+           */
+          .cut(/\.page-header ([\s\S]*?})/gim,
+            ['.page-header $1', 'page-header'])
 
-        extract(/\.text-(lowercase|uppercase|capitalize) ([\s\S]*?})/gim, storage, content,
-          ['.text_case_$1 $2', 'text']
-        );
-        content = content.replace(/\.text-(lowercase|uppercase|capitalize) ([\s\S]*?})/gim, '');
+          /**
+           * Lists
+           */
+          // .list
+          .cut(/\nul, ol ([\s\S]*?}\n})/gim,
+            ['.raw-text ul,\n.raw-text ol $1', 'raw-text'],
+            ['.list $1', 'list', ['ul, ol', '.list']])
+          .cut(/\.list-unstyled ([\s\S]*?})/gim,
+            ['.list_unstyled_true $1', 'list'])
+          .replace(/\.list-unstyled\(\)/gim, '.list_unstyled_true()')
 
-        extract(/\.text-muted ([\s\S]*?})/gim, storage, content,
-          ['.text_muted_true $1', 'text']
-        );
-        content = content.replace(/\.text-muted ([\s\S]*?})/gim, '');
+          .cut(/\.list-inline ([\s\S]*?}\n})/gim,
+            ['.list_inline_true $1', 'list', ['> li', '> .list__item']])
+          // dl
+          .cut(/dl ([\s\S]*?})/gim,
+            ['.raw-text dl $1', 'raw-text'],
+            ['.dl $1', 'dl'])
+          .cut(/dt, dd ([\s\S]*?})/gim,
+            ['.raw-text dt,\n.raw-text dd $1', 'raw-text'],
+            ['.dl__term,\n.dl__desc $1', 'dl'])
+          .cut(/\ndt ([\s\S]*?})/gim,
+            ['.raw-text dt $1', 'raw-text'],
+            ['.dl__term $1', 'dl'])
+          .cut(/\ndd ([\s\S]*?})/gim,
+            ['.raw-text dd $1', 'raw-text'],
+            ['.dl__desc $1', 'dl'])
+          .cut(/\ndd ([\s\S]*?})/gim,
+            ['.raw-text dd $1', 'raw-text'],
+            ['.dl__desc $1', 'dl'])
+          .cut(/\.dl-horizontal ([\s\S]*?}\n})/gim,
+            ['.dl_horizontal_true $1', 'dl', [/dd {/gim, '.dl__desc {'], [/dt {/gim, '.dl__term {']])
 
-        extract(/\.text-(primary|success|info|warning|danger) ([\s\S]*?})/gim, storage, content,
-          ['.text_theme_$1 $2', 'text']
-        );
-        content = content.replace(/\.text-(primary|success|info|warning|danger) ([\s\S]*?})/gim, '');
+          /**
+           * Misc
+           */
+          .cut(/(abbr)([\s\S]*?})/gm,
+            ['$1$2', 'raw-text', [/abbr\[/gim, '.raw-text abbr[']],
+            ['$1$2', 'abbr', [/abbr\[/gim, '.abbr[']])
+          .cut(/\.initialism ([\s\S]*?})/gim,
+            ['.initialism $1', 'initialism'])
+          .cut(/(blockquote) ([\s\S]*?}\n})/gim,
+            ['.raw-text $1 $2', 'raw-text'],
+            ['.$1 $2', 'blockquote',
+              ['p, ul, ol {', 'p, .p, ul, ol, .list {'],
+              ['footer, small, .small {', 'footer, .footer, small, .small {'],
+            ]
+          )
 
-        // bg
-        extract(/\.bg-(primary|success|info|warning|danger) ([\s\S]*?})/gim, storage, content,
-          ['.bg_theme_$1 $2', 'bg']
-        );
-        content = content.replace(/\.bg-(primary|success|info|warning|danger) ([\s\S]*?})/gim, '');
-
-        /**
-         * Page header
-         */
-        extract(/\.page-header ([\s\S]*?})/gim, storage, content,
-          ['.page-header $1', 'page-header']
-        );
-        content = content.replace(/\.page-header ([\s\S]*?})/gim, '');
-
-        /**
-         * Lists
-         */
-        // .list
-        extract(/\nul, ol ([\s\S]*?}\n})/gim, storage, content,
-          ['.raw-text ul,\n.raw-text ol $1', 'raw-text'],
-          ['.list $1', 'list', ['ul, ol', '.list']]
-        );
-        content = content.replace(/\nul, ol ([\s\S]*?}\n})/gim, '');
-
-        extract(/\.list-unstyled ([\s\S]*?})/gim, storage, content,
-          ['.list_unstyled_true $1', 'list']
-        );
-        content = content.replace(/\.list-unstyled ([\s\S]*?})/gim, '');
-        content = content.replace(/\.list-unstyled\(\)/gim, '.list_unstyled_true()');
-
-        extract(/\.list-inline ([\s\S]*?}\n})/gim, storage, content,
-          ['.list_inline_true $1', 'list', ['> li', '> .list__item']]
-        );
-        content = content.replace(/\.list-inline ([\s\S]*?}\n})/gim, '');
-
-        // dl
-        extract(/dl ([\s\S]*?})/gim, storage, content,
-          ['.raw-text dl $1', 'raw-text'],
-          ['.dl $1', 'dl']
-        );
-        content = content.replace(/dl ([\s\S]*?})/gim, '');
-
-        extract(/dt, dd ([\s\S]*?})/gim, storage, content,
-          ['.raw-text dt,\n.raw-text dd $1', 'raw-text'],
-          ['.dl__term,\n.dl__desc $1', 'dl']
-        );
-        content = content.replace(/dt, dd ([\s\S]*?})/gim, '');
-
-        extract(/\ndt ([\s\S]*?})/gim, storage, content,
-          ['.raw-text dt $1', 'raw-text'],
-          ['.dl__term $1', 'dl']
-        );
-        content = content.replace(/\ndt ([\s\S]*?})/gim, '');
-
-        extract(/\ndd ([\s\S]*?})/gim, storage, content,
-          ['.raw-text dd $1', 'raw-text'],
-          ['.dl__desc $1', 'dl']
-        );
-        content = content.replace(/\ndd ([\s\S]*?})/gim, '');
-
-        extract(/\ndd ([\s\S]*?})/gim, storage, content,
-          ['.raw-text dd $1', 'raw-text'],
-          ['.dl__desc $1', 'dl']
-        );
-        content = content.replace(/\ndd ([\s\S]*?})/gim, '');
-
-        extract(/\.dl-horizontal ([\s\S]*?}\n})/gim, storage, content,
-          ['.dl_horizontal_true $1', 'dl', [/dd {/gim, '.dl__desc {'], [/dt {/gim, '.dl__term {']]
-        );
-        content = content.replace(/\.dl-horizontal ([\s\S]*?}\n})/gim, '');
-
-        /**
-         * Misc
-         */
-        extract(/(abbr)([\s\S]*?})/gm, storage, content,
-          ['$1$2', 'raw-text', [/abbr\[/gim, '.raw-text abbr[']],
-          ['$1$2', 'abbr', [/abbr\[/gim, '.abbr[']]
-        );
-        content = content.replace(/abbr([\s\S]*?})/gm, '');
-
-        extract(/\.initialism ([\s\S]*?})/gim, storage, content,
-          ['.initialism $1', 'initialism']
-        );
-        content = content.replace(/\.initialism ([\s\S]*?})/gim, '');
-
-        extract(/(blockquote) ([\s\S]*?}\n})/gim, storage, content,
-          ['.raw-text $1 $2', 'raw-text'],
-          ['.$1 $2', 'blockquote',
-            ['p, ul, ol {', 'p, .p, ul, ol, .list {'],
-            ['footer, small, .small {', 'footer, .footer, small, .small {'],
-          ]
-        );
-        content = content.replace(/(blockquote) ([\s\S]*?}\n})/gim, '');
-
-        content = content.replace(', blockquote.pull-right', '');
-        extract(/(\.blockquote-reverse) ([\s\S]*?}\n})/gim, storage, content,
-          ['.blockquote_reverse_true $2', 'blockquote',
-            ['p, ul, ol {', 'p, .p, ul, ol, .list {'],
-            ['footer, small, .small {', 'footer, .footer, small, .small {'],
-          ]
-        );
-        content = content.replace(/(\.blockquote-reverse) ([\s\S]*?}\n})/gim, '');
-
-        extract(/(blockquote:before, blockquote:after) ([\s\S]*?})/gm, storage, content,
-          ['$1 $2', 'raw-text', [/blockquote/gim, '.raw-text blockquote']],
-          ['$1 $2', 'blockquote', [/blockquote/gim, '.blockquote']]
-        );
-        content = content.replace(/(blockquote:before, blockquote:after) ([\s\S]*?})/gm, '');
-
-        // address
-        extract(/(address) ([\s\S]*?})/gim, storage, content,
-          ['.raw-text $1 $2', 'raw-text'],
-          ['.$1 $2', 'address']
-        );
-        content = content.replace(/(address) ([\s\S]*?})/gim, '');
+          .remove(', blockquote.pull-right')
+          .cut(/(\.blockquote-reverse) ([\s\S]*?}\n})/gim,
+            ['.blockquote_reverse_true $2', 'blockquote',
+              ['p, ul, ol {', 'p, .p, ul, ol, .list {'],
+              ['footer, small, .small {', 'footer, .footer, small, .small {'],
+            ]
+          )
+          .cut(/(blockquote:before, blockquote:after) ([\s\S]*?})/gm,
+            ['$1 $2', 'raw-text', [/blockquote/gim, '.raw-text blockquote']],
+            ['$1 $2', 'blockquote', [/blockquote/gim, '.blockquote']])
+          // address
+          .cut(/(address) ([\s\S]*?})/gim,
+            ['.raw-text $1 $2', 'raw-text'],
+            ['.$1 $2', 'address']);
       }
 
       if (filename === 'code') {
-        content = content.replace(/,\n/g, ', ');
+        storage.replace(/,\n/g, ', ');
 
         ['code', 'kbd', 'pre', 'samp'].forEach(function(item) {
-          extract(/(code, kbd, pre, samp) ([\s\S]*?})/gim, storage, content,
+          storage.copy(/(code, kbd, pre, samp) ([\s\S]*?})/gim,
             [ '.' + item + ' $2', item],
             [ '.raw-text ' + item + ' $2', 'raw-text']
           );
         });
-        content = content.replace(/(code, kbd, pre, samp) ([\s\S]*?})/gim, '');
+        storage.remove(/(code, kbd, pre, samp) ([\s\S]*?})/gim);
 
-        tempTransform = ['code {', 'codetemp {'];
-        content = content.replace.apply(content, tempTransform);
-
-        tempTransform.reverse();
-        extract(/(codetemp) ({[\s\S]*?})/gim, storage, content,
-          [ '.$1 $2', 'code', tempTransform],
-          [ '.raw-text $1 $2', 'raw-text', tempTransform]
-        );
-        content = content.replace(/(codetemp) ({[\s\S]*?})/, '');
-
-        extract(/(kbd) ({[\s\S]*?}\n})/gim, storage, content,
-          [ '.$1 $2', 'kbd', [/(\n[\s]+)kbd/, '$1.kbd']],
-          [ '.raw-text $1 $2', 'raw-text']
-        );
-        content = content.replace(/(kbd) ({[\s\S]*?}\n})/, '');
-
-        extract(/(pre) ({[\s\S]*?}\n})/gim, storage, content,
-          [ '.$1 $2', 'pre', ['code {', '.code {']],
-          [ '.raw-text $1 $2', 'raw-text']
-        );
-        content = content.replace(/(pre) ({[\s\S]*?}\n})/, '');
-
-        extract(/(\.pre-scrollable) ({[\s\S]*?})/gim, storage, content,
-          [ '$1 $2', 'pre', ['pre-scrollable', 'pre_scrollable_true']]
-        );
-        content = content.replace(/(\.pre-scrollable) ({[\s\S]*?})/, '');
+        storage
+          .cut(/(code) ({[\s\S]*?})/im,
+            [ '.$1 $2', 'code'],
+            [ '.raw-text $1 $2', 'raw-text'])
+          .cut(/(kbd) ({[\s\S]*?}\n})/gim,
+            [ '.$1 $2', 'kbd', [/(\n[\s]+)kbd/, '$1.kbd']],
+            [ '.raw-text $1 $2', 'raw-text'])
+          .cut(/(pre) ({[\s\S]*?}\n})/gim,
+            [ '.$1 $2', 'pre', ['code {', '.code {']],
+            [ '.raw-text $1 $2', 'raw-text'])
+          .cut(/(\.pre-scrollable) ({[\s\S]*?})/gim,
+            [ '$1 $2', 'pre', ['pre-scrollable', 'pre_scrollable_true']]);
       }
 
       if (filename === 'grid') {
-        content = content.replace(/\.container/g, '.grid');
-        content = content.replace(/\.container-fluid/g, '.grid_fluid_true');
-        content = content.replace(/\.row/g, '.grid__row');
-
-        storage.add(level, filename, content);
+        storage.replace(/\.container/g, '.grid')
+                .replace(/\.container-fluid/g, '.grid_fluid_true')
+                .replace(/\.row/g, '.grid__row')
+                .add(storage.level, filename, storage.content);
       }
 
       if (filename === 'buttons') {
-        content = content.replace(/\&\.(active|disabled)/g, '&.btn_state_$1');
-        content = content.replace(/\.btn-(lg|sm|xs)/g, '.btn_size_$1');
-        content = content.replace(/\.btn-(default|primary|success|info|warning|danger)/g, '.btn_theme_$1');
-        content = content.replace(/\.btn-link/g, '.btn_link_true');
-        content = content.replace(/\.btn-block/g, '.btn_block_true');
-
-        storage.add(level, filename, content);
+        storage.replace(/\&\.(active|disabled)/g, '&.btn_state_$1')
+                .replace(/\.btn-(lg|sm|xs)/g, '.btn_size_$1')
+                .replace(/\.btn-(default|primary|success|info|warning|danger)/g, '.btn_theme_$1')
+                .replace(/\.btn-link/g, '.btn_link_true')
+                .replace(/\.btn-block/g, '.btn_block_true')
+                .add(storage.level, filename, storage.content);
       }
 
       cb();
