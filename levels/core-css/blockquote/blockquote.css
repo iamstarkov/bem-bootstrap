@@ -26,23 +26,23 @@
 .blockquote .small:before {
   content: '\2014 \00A0';
 }
-.blockquote_reverse_true {
+.blockquote_reverse {
   padding-right: 15px;
   padding-left: 0;
   border-right: 5px solid #eeeeee;
   border-left: 0;
   text-align: right;
 }
-.blockquote_reverse_true footer:before,
-.blockquote_reverse_true .footer:before,
-.blockquote_reverse_true small:before,
-.blockquote_reverse_true .small:before {
+.blockquote_reverse footer:before,
+.blockquote_reverse .footer:before,
+.blockquote_reverse small:before,
+.blockquote_reverse .small:before {
   content: '';
 }
-.blockquote_reverse_true footer:after,
-.blockquote_reverse_true .footer:after,
-.blockquote_reverse_true small:after,
-.blockquote_reverse_true .small:after {
+.blockquote_reverse footer:after,
+.blockquote_reverse .footer:after,
+.blockquote_reverse small:after,
+.blockquote_reverse .small:after {
   content: '\00A0 \2014';
 }
 .blockquote:before,

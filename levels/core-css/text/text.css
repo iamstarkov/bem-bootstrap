@@ -22,7 +22,7 @@
 .text_case_capitalize {
   text-transform: capitalize;
 }
-.text_muted_true {
+.text_muted {
   color: #777777;
 }
 .text_theme_primary {

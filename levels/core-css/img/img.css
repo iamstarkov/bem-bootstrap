@@ -1,13 +1,13 @@
-.img_responsive_true {
+.img_responsive {
   display: block;
   width: 100% \9;
   max-width: 100%;
   height: auto;
 }
-.img_rounded_true {
+.img_rounded {
   border-radius: 6px;
 }
-.img_thumbnail_true {
+.img_thumbnail {
   padding: 4px;
   line-height: 1.42857143;
   background-color: #ffffff;
@@ -21,6 +21,6 @@
   max-width: 100%;
   height: auto;
 }
-.img_circle_true {
+.img_circle {
   border-radius: 50%;
 }

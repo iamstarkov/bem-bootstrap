@@ -22,7 +22,7 @@
   background-color: transparent;
   border-radius: 0;
 }
-.pre_scrollable_true {
+.pre_scrollable {
   max-height: 340px;
   overflow-y: scroll;
 }

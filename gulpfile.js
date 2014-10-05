@@ -146,7 +146,7 @@ gulp.task('process-core-css', function(done) {
 
         storage
           .cut(/\.img-(responsive|rounded|thumbnail|circle) ([\s\S]*?})/gim,
-            ['.img_$1_true $2', 'img'])
+            ['.img_$1 $2', 'img'])
           .cut(/hr ([\s\S]*?})/gim,
             ['.raw-text hr $1', 'raw-text'],
             ['.hr $1', 'hr'])
@@ -221,7 +221,7 @@ gulp.task('process-core-css', function(done) {
           .cut(/\.text-(lowercase|uppercase|capitalize) ([\s\S]*?})/gim,
             ['.text_case_$1 $2', 'text'])
           .cut(/\.text-muted ([\s\S]*?})/gim,
-            ['.text_muted_true $1', 'text'])
+            ['.text_muted $1', 'text'])
           .cut(/\.text-(primary|success|info|warning|danger) ([\s\S]*?})/gim,
             ['.text_theme_$1 $2', 'text'])
           // bg
@@ -242,11 +242,11 @@ gulp.task('process-core-css', function(done) {
             ['.raw-text ul,\n.raw-text ol $1', 'raw-text'],
             ['.list $1', 'list', ['ul, ol', '.list']])
           .cut(/\.list-unstyled ([\s\S]*?})/gim,
-            ['.list_unstyled_true $1', 'list'])
-          .replace(/\.list-unstyled\(\)/gim, '.list_unstyled_true()')
+            ['.list_unstyled $1', 'list'])
+          .replace(/\.list-unstyled\(\)/gim, '.list_unstyled()')
 
           .cut(/\.list-inline ([\s\S]*?}\n})/gim,
-            ['.list_inline_true $1', 'list', ['> li', '> .list__item']])
+            ['.list_inline $1', 'list', ['> li', '> .list__item']])
           // dl
           .cut(/dl ([\s\S]*?})/gim,
             ['.raw-text dl $1', 'raw-text'],
@@ -264,7 +264,7 @@ gulp.task('process-core-css', function(done) {
             ['.raw-text dd $1', 'raw-text'],
             ['.dl__desc $1', 'dl'])
           .cut(/\.dl-horizontal ([\s\S]*?}\n})/gim,
-            ['.dl_horizontal_true $1', 'dl', [/dd {/gim, '.dl__desc {'], [/dt {/gim, '.dl__term {']])
+            ['.dl_horizontal $1', 'dl', [/dd {/gim, '.dl__desc {'], [/dt {/gim, '.dl__term {']])
 
           /**
            * Misc
@@ -284,7 +284,7 @@ gulp.task('process-core-css', function(done) {
 
           .remove(', blockquote.pull-right')
           .cut(/(\.blockquote-reverse) ([\s\S]*?}\n})/gim,
-            ['.blockquote_reverse_true $2', 'blockquote',
+            ['.blockquote_reverse $2', 'blockquote',
               ['p, ul, ol {', 'p, .p, ul, ol, .list {'],
               ['footer, small, .small {', 'footer, .footer, small, .small {'],
             ]
@@ -320,12 +320,12 @@ gulp.task('process-core-css', function(done) {
             [ '.$1 $2', 'pre', ['code {', '.code {']],
             [ '.raw-text $1 $2', 'raw-text'])
           .cut(/(\.pre-scrollable) ({[\s\S]*?})/gim,
-            [ '$1 $2', 'pre', ['pre-scrollable', 'pre_scrollable_true']]);
+            [ '$1 $2', 'pre', ['pre-scrollable', 'pre_scrollable']]);
       }
 
       if (filename === 'grid') {
         storage.replace(/\.container/g, '.grid')
-                .replace(/\.container-fluid/g, '.grid_fluid_true')
+                .replace(/\.container-fluid/g, '.grid_fluid')
                 .replace(/\.row/g, '.grid__row')
                 .add(storage.level, filename, storage.content);
       }
@@ -334,8 +334,8 @@ gulp.task('process-core-css', function(done) {
         storage.replace(/\&\.(active|disabled)/g, '&.btn_state_$1')
                 .replace(/\.btn-(lg|sm|xs)/g, '.btn_size_$1')
                 .replace(/\.btn-(default|primary|success|info|warning|danger)/g, '.btn_theme_$1')
-                .replace(/\.btn-link/g, '.btn_link_true')
-                .replace(/\.btn-block/g, '.btn_block_true')
+                .replace(/\.btn-link/g, '.btn_link')
+                .replace(/\.btn-block/g, '.btn_block')
                 .add(storage.level, filename, storage.content);
       }
 

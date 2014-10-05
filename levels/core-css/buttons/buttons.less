@@ -82,7 +82,7 @@
 // -------------------------
 
 // Make a button look and behave like a link
-.btn_link_true {
+.btn_link {
   color: @link-color;
   font-weight: normal;
   cursor: pointer;
@@ -137,13 +137,13 @@
 // Block button
 // --------------------------------------------------
 
-.btn_block_true {
+.btn_block {
   display: block;
   width: 100%;
 }
 
 // Vertically space out multiple block buttons
-.btn_block_true + .btn_block_true {
+.btn_block + .btn_block {
   margin-top: 5px;
 }
 
@@ -151,7 +151,7 @@
 input[type="submit"],
 input[type="reset"],
 input[type="button"] {
-  &.btn_block_true {
+  &.btn_block {
     width: 100%;
   }
 }
