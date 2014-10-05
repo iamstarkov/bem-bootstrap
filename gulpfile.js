@@ -61,18 +61,20 @@ gulp.task('blocks', function(cb) {
  */
 gulp.task('process-variables-and-mixins', ['copy-fonts', 'copy-mixins'], function(done) {
   gulp.src(['variables.less', 'mixins.less'].map(prefix))
-    .pipe(replace('&:extend(.clearfix all)', '.clearfix()'))
     .pipe(through.obj(function(file, enc, cb) {
-      var content = file.contents.toString('utf8');
       var filename = path.basename(file.relative, '.less');
+      storage.content = file.contents.toString('utf8');
+
+      storage.replace('&:extend(.clearfix all)', '.clearfix()');
 
       if (filename === 'variables') {
-        content = content.replace('../fonts', '../../../fonts');
-        storage.add('variables', 'variables', content);
+        storage
+          .replace('../fonts', '../../../fonts')
+          .add('variables', 'variables', storage.content);
       }
 
       if (filename === 'mixins') {
-        storage.add('mixins', 'mixins', content);
+        storage.add('mixins', 'mixins', storage.content);
       }
 
       cb();
@@ -102,16 +104,17 @@ gulp.task('copy-mixins', function() {
  */
 gulp.task('process-reset-and-dependencies', function(done) {
   gulp.src(['normalize.less', 'print.less', 'glyphicons.less'].map(prefix))
-    .pipe(replace('&:extend(.clearfix all)', '.clearfix()'))
     .pipe(through.obj(function(file, enc, cb) {
-      var content = file.contents.toString('utf8');
       var filename = path.basename(file.relative, '.less');
+      storage.content = file.contents.toString('utf8');
+
+      storage.replace('&:extend(.clearfix all)', '.clearfix()');
 
       if (filename === 'glyphicons') {
-        content = content.replace(/.glyphicon-/g, '.glyphicon_item_');
+        storage.replace(/.glyphicon-/g, '.glyphicon_item_');
       }
 
-      storage.add(filename, filename, content);
+      storage.add(filename, filename, storage.content);
 
       cb();
     }))
@@ -131,10 +134,12 @@ gulp.task('process-core-css', function(done) {
     // 'forms.less',
     'buttons.less'
   ].map(prefix))
-    .pipe(replace('&:extend(.clearfix all)', '.clearfix()'))
     .pipe(through.obj(function(file, enc, cb) {
       var filename = path.basename(file.relative, '.less');
       storage.content = file.contents.toString('utf8');
+
+      storage.replace('&:extend(.clearfix all)', '.clearfix()');
+
       storage.level = 'core-css';
 
       if (filename === 'scaffolding') {
