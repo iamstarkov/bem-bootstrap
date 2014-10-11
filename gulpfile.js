@@ -21,7 +21,8 @@ var levels = [
   'print',
   'glyphicons',
   'scaffolding',
-  'core-css'
+  'core-css',
+  'components'
 ].map(function(item) { return path.join('levels', item); });
 
 /**
@@ -32,7 +33,11 @@ gulp.task('clean-docs', function(cb) {
 });
 
 gulp.task('clean-blocks', function(cb) {
-  del('levels', cb);
+  del(['levels/*',
+      '!levels/core-css', 'levels/core-css/*',
+                          '!levels/core-css/tables',
+                          '!levels/core-css/forms',
+      '!levels/components'], cb);
 });
 
 /**
