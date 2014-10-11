@@ -1,0 +1,194 @@
+.nav {
+  margin-bottom: 0;
+  padding-left: 0;
+  list-style: none;
+}
+.nav:before,
+.nav:after {
+  content: " ";
+  display: table;
+}
+.nav:after {
+  clear: both;
+}
+.nav__link {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+}
+.nav__link:hover,
+.nav__link:focus {
+  text-decoration: none;
+  background-color: #eeeeee;
+}
+.nav__item {
+  position: relative;
+  display: block;
+}
+.nav__item_disabled .nav__link {
+  color: #777777;
+}
+.nav__item_disabled .nav__link:hover,
+.nav__item_disabled .nav__link:focus {
+  color: #777777;
+  text-decoration: none;
+  background-color: transparent;
+  cursor: not-allowed;
+}
+.nav .dropdown_open .nav__link,
+.nav .dropdown_open .nav__link:hover,
+.nav .dropdown_open .nav__link:focus {
+  background-color: #eeeeee;
+  border-color: #428bca;
+}
+.nav .nav__divider {
+  height: 1px;
+  margin: 9px 0;
+  overflow: hidden;
+  background-color: #e5e5e5;
+}
+.nav img {
+  max-width: none;
+}
+.nav_tabs {
+  border-bottom: 1px solid #dddddd;
+}
+.nav_tabs .nav__link {
+  margin-right: 2px;
+  line-height: 1.42857143;
+  border: 1px solid transparent;
+  border-radius: 4px 4px 0 0;
+}
+.nav_tabs .nav__link:hover {
+  border-color: #eeeeee #eeeeee #dddddd;
+}
+.nav_tabs .nav__item {
+  float: left;
+  margin-bottom: -1px;
+}
+.nav_tabs .nav__item_active > .nav__link,
+.nav_tabs .nav__item_active > .nav__link:hover,
+.nav_tabs .nav__item_active > .nav__link:focus {
+  color: #555555;
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
+  border-bottom-color: transparent;
+  cursor: default;
+}
+.nav_justified {
+  width: 100%;
+  border-bottom: 0;
+}
+.nav_justified .nav__item {
+  float: none;
+}
+.nav_justified .nav__link {
+  text-align: center;
+  margin-bottom: 5px;
+}
+.nav_justified .dropdown .dropdown-menu {
+  top: auto;
+  left: auto;
+}
+@media (min-width: 768px) {
+  .nav_justified .nav__item {
+    display: table-cell;
+    width: 1%;
+  }
+  .nav_justified .nav__link {
+    margin-bottom: 0;
+  }
+}
+.nav_justified .nav__link {
+  margin-right: 0;
+  border-radius: 4px;
+}
+.nav_justified .nav__item_active .nav__link,
+.nav_justified .nav__item_active .nav__link:hover,
+.nav_justified .nav__item_active .nav__link:focus {
+  border: 1px solid #dddddd;
+}
+@media (min-width: 768px) {
+  .nav_justified .nav__link {
+    border-bottom: 1px solid #dddddd;
+    border-radius: 4px 4px 0 0;
+  }
+  .nav_justified .nav__item_active .nav__link,
+  .nav_justified .nav__item_active .nav__link:hover,
+  .nav_justified .nav__item_active .nav__link:focus {
+    border-bottom-color: #ffffff;
+  }
+}
+.nav_pills .nav__link {
+  border-radius: 4px;
+}
+.nav_pills .nav__item {
+  float: left;
+}
+.nav_pills .nav__item + .nav__item {
+  margin-left: 2px;
+}
+.nav_pills .nav__item_active .nav__link,
+.nav_pills .nav__item_active .nav__link:hover,
+.nav_pills .nav__item_active .nav__link:focus {
+  color: #ffffff;
+  background-color: #428bca;
+}
+.nav_stacked .nav__item {
+  float: none;
+}
+.nav_stacked .nav__item + .nav__item {
+  margin-top: 2px;
+  margin-left: 0;
+}
+.nav_justified-mixin {
+  width: 100%;
+}
+.nav_justified-mixin .nav__item {
+  float: none;
+}
+.nav_justified-mixin .nav__link {
+  text-align: center;
+  margin-bottom: 5px;
+}
+.nav_justified-mixin .dropdown .dropdown-menu {
+  top: auto;
+  left: auto;
+}
+@media (min-width: 768px) {
+  .nav_justified-mixin .nav__item {
+    display: table-cell;
+    width: 1%;
+  }
+  .nav_justified-mixin .nav__link {
+    margin-bottom: 0;
+  }
+}
+.nav-tabs-justified-mixin {
+  border-bottom: 0;
+}
+.nav-tabs-justified-mixin .nav__link {
+  margin-right: 0;
+  border-radius: 4px;
+}
+.nav-tabs-justified-mixin .nav__item_active .nav__link,
+.nav-tabs-justified-mixin .nav__item_active .nav__link:hover,
+.nav-tabs-justified-mixin .nav__item_active .nav__link:focus {
+  border: 1px solid #dddddd;
+}
+@media (min-width: 768px) {
+  .nav-tabs-justified-mixin .nav__link {
+    border-bottom: 1px solid #dddddd;
+    border-radius: 4px 4px 0 0;
+  }
+  .nav-tabs-justified-mixin .nav__item_active .nav__link,
+  .nav-tabs-justified-mixin .nav__item_active .nav__link:hover,
+  .nav-tabs-justified-mixin .nav__item_active .nav__link:focus {
+    border-bottom-color: #ffffff;
+  }
+}
+.nav_tabs .dropdown-menu {
+  margin-top: -1px;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
