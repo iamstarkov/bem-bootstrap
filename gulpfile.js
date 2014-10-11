@@ -21,7 +21,7 @@ var levels = [
   'print',
   'glyphicons',
   'scaffolding',
-  'core-css',
+  'core',
   'components'
 ].map(function(item) { return path.join('levels', item); });
 
@@ -34,9 +34,9 @@ gulp.task('clean-docs', function(cb) {
 
 gulp.task('clean-blocks', function(cb) {
   del(['levels/*',
-      '!levels/core-css', 'levels/core-css/*',
-                          '!levels/core-css/tables',
-                          '!levels/core-css/forms',
+      '!levels/core', 'levels/core/*',
+                          '!levels/core/tables',
+                          '!levels/core/forms',
       '!levels/components'], cb);
 });
 
@@ -54,7 +54,7 @@ gulp.task('blocks', function(cb) {
     [
       'process-variables-and-mixins',
       'process-reset-and-dependencies',
-      'process-core-css'
+      'process-core'
     ],
     'place-blocks',
     'compile-blocks',
@@ -129,7 +129,7 @@ gulp.task('process-reset-and-dependencies', function(done) {
 /**
  * Core CSS
  */
-gulp.task('process-core-css', function(done) {
+gulp.task('process-core', function(done) {
   gulp.src([
     'scaffolding.less',
     'type.less',
@@ -145,7 +145,7 @@ gulp.task('process-core-css', function(done) {
 
       storage.replace('&:extend(.clearfix all)', '.clearfix()');
 
-      storage.level = 'core-css';
+      storage.level = 'core';
 
       if (filename === 'scaffolding') {
 
