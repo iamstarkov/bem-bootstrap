@@ -1,11 +1,11 @@
 {
   "name": "bem-bootstrap",
-  "version": "0.0.0",
-  "description": "Bootstrap layer for bem",
+  "version": "0.1.0",
+  "description": "Bootstrap blocks in BEM terms",
   "scripts": {},
   "keywords": [],
   "author": "matmuchrapna",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {},
   "dependencies": {
     "gulp": "^3.8.7",

@@ -1,0 +1,32 @@
+{
+  "name": "bem-bootstrap",
+  "version": "0.1.0",
+  "homepage": "https://github.com/matmuchrapna/bem-bootstrap",
+  "authors": [
+    "Vladimir Starkov <matmuchrapna@gmail.com>"
+  ],
+  "description": "Bootstrap blocks in BEM terms",
+  "levels": [
+    "levels/variables",
+    "levels/mixins",
+    "levels/normalize",
+    "levels/print",
+    "levels/glyphicons",
+    "levels/scaffolding",
+    "levels/core",
+    "levels/components"
+  ],
+  "keywords": [
+    "css",
+    "bem",
+    "bootstrap"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
