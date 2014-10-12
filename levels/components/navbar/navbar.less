@@ -130,7 +130,7 @@
   padding-left:  @navbar-padding-horizontal;
   border-top: 1px solid transparent;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
-  &:extend(.clearfix all);
+  .clearfix();
   -webkit-overflow-scrolling: touch;
 
   &.in {
@@ -142,7 +142,7 @@
     border-top: 0;
     box-shadow: none;
 
-    &_collapsed {
+    &.collapse {
       display: block !important;
       height: auto !important;
       padding-bottom: 0; // Override default setting
@@ -251,7 +251,7 @@
   }
 
   @media (min-width: @grid-float-breakpoint) {
-    .container & {
+    .grid & {
       margin-left: -@navbar-padding-horizontal;
     }
   }
@@ -344,10 +344,10 @@
       float: left;
       margin: 0;
 
-      .navbar__item {
+      .nav__item {
         float: left;
       }
-      .navbar__link {
+      .nav__link {
         padding-top:    @navbar-padding-vertical;
         padding-bottom: @navbar-padding-vertical;
       }
@@ -602,11 +602,11 @@
 
 // Inverse navbar
 
-.navbar-inverse {
+.navbar_theme_inverse {
   background-color: @navbar-inverse-bg;
   border-color: @navbar-inverse-border;
 
-  .navbar-brand {
+  .navbar__brand {
     color: @navbar-inverse-brand-color;
     &:hover,
     &:focus {
@@ -615,7 +615,7 @@
     }
   }
 
-  .navbar-text {
+  .navbar__text {
     color: @navbar-inverse-color;
   }
 
@@ -712,14 +712,14 @@
     }
   }
 
-  .navbar-link {
+  .nav__link {
     color: @navbar-inverse-link-color;
     &:hover {
       color: @navbar-inverse-link-hover-color;
     }
   }
 
-  .btn-link {
+  .btn_link {
     color: @navbar-inverse-link-color;
     &:hover,
     &:focus {
