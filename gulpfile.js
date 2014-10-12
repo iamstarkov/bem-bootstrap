@@ -37,7 +37,8 @@ gulp.task('clean-blocks', function(cb) {
       '!levels/core', 'levels/core/*',
                           '!levels/core/tables',
                           '!levels/core/forms',
-      '!levels/components'], cb);
+      '!levels/components',
+      '!levels/js'], cb);
 });
 
 /**
