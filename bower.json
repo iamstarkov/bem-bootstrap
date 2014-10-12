@@ -15,6 +15,7 @@
     "levels/scaffolding",
     "levels/core",
     "levels/components"
+    "levels/js"
   ],
   "keywords": [
     "css",
