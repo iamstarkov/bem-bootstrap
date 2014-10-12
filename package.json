@@ -6,7 +6,12 @@
   "keywords": [],
   "author": "matmuchrapna",
   "license": "MIT",
-  "devDependencies": {},
+  "devDependencies": {
+    "gulp-bump": "^0.1.11",
+    "inquirer": "^0.8.0",
+    "pff": "^0.2.0",
+    "shelljs": "^0.3.0"
+  },
   "dependencies": {
     "gulp": "^3.8.7",
     "bootstrap": "~3.2.0",
