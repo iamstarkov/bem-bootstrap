@@ -44,8 +44,6 @@ gulp.task('questions', function(done) {
 });
 
 gulp.task('bump', ['questions'], function() {
-  console.log('answers');
-  console.log(answers);
   return gulp.src(['./package.json', './bower.json'])
     .pipe(bump({ type: answers.versionType }))
     .pipe(gulp.dest('./'));
