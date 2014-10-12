@@ -399,6 +399,5 @@ gulp.task('docs-site', function() {
   return gulp.src('./node_modules/bootstrap/docs/**').pipe(gulp.dest('./docs/'));
 });
 
-
 /* Some external tasks */
 require('./tasks/versioning.js');
