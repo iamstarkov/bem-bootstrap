@@ -12,7 +12,8 @@ var debug = require('gulp-debug');
 var through = require('through2');
 
 var storage = new (require('./storage.js'))();
-var prefix = require('./prefix-levels');
+var prefix = require('./prefix-levels').prefixLess;
+var prefixJS = require('./prefix-levels').prefixJS;
 
 var levels = [
   'variables', // less-only
@@ -22,7 +23,8 @@ var levels = [
   'glyphicons',
   'scaffolding',
   'core',
-  'components'
+  'components',
+  'js'
 ].map(function(item) { return path.join('levels', item); });
 
 /**
@@ -37,8 +39,7 @@ gulp.task('clean-blocks', function(cb) {
       '!levels/core', 'levels/core/*',
                           '!levels/core/tables',
                           '!levels/core/forms',
-      '!levels/components',
-      '!levels/js'], cb);
+      '!levels/components'], cb);
 });
 
 /**
@@ -55,7 +56,8 @@ gulp.task('blocks', function(cb) {
     [
       'process-variables-and-mixins',
       'process-reset-and-dependencies',
-      'process-core'
+      'process-core',
+      'process-js'
     ],
     'place-blocks',
     'compile-blocks',
@@ -350,6 +352,18 @@ gulp.task('process-core', function(done) {
     .on('finish', done);
 });
 
+gulp.task('process-js', function(done) {
+  gulp.src(['*.js'].map(prefixJS))
+    .pipe(through.obj(function(file, enc, cb) {
+      var filename = path.basename(file.relative, '.js');
+      storage.content = file.contents.toString('utf8');
+
+      storage.add('js', filename, storage.content);
+      cb();
+    }))
+    .on('finish', done);
+});
+
 /**
  * Placing blocks in proper way
  */
@@ -358,9 +372,11 @@ gulp.task('place-blocks', function() {
     .pipe(through.obj(function(file, enc, cb) {
       var self = this;
       Object.keys(storage.storage).forEach(function(level) {
+        var ext = level === 'js' ? '.js' : '.less';
+
         Object.keys(storage.storage[level]).forEach(function(block) {
           self.push(new File({
-            path: path.join(level, block, block + '.less'),
+            path: path.join(level, block, block + ext),
             contents: new Buffer(storage.get(level, block))
           }));
         });
