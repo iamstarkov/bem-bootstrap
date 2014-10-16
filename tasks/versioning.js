@@ -3,6 +3,12 @@
 var gulp = require('gulp');
 var shell = require('shelljs');
 var pff = require('pff');
+var bump = require('gulp-bump');
+var inquirer = require('inquirer');
+var getVersion = function() { return require('./../package.json').version; };
+
+var changelog = require('conventional-changelog');
+var fs = require('fs');
 
 /**
  * Versioning
@@ -12,10 +18,6 @@ var pff = require('pff');
  * 3. Version update commit + tagging
  * 4. Optional push to remote repo
  */
-
-var bump = require('gulp-bump');
-var inquirer = require('inquirer');
-var getVersion = function() { return require('./../package.json').version; };
 
 var answers;
 
@@ -58,6 +60,44 @@ gulp.task('git', ['bump'], function(done) {
     console.log('Version updated to v' + getVersion());
   }
   done();
+});
+
+gulp.task('changelog', function(done) {
+  var info = require('./../package.json');
+  var filename = 'CHANGELOG.md';
+  changelog({
+    repository: info.repository.url,
+
+    // from: '1d2c8ef',
+    // to: '9fef1e8',
+    // version: 'v0.1.0',
+
+    // from: '9fef1e8',
+    // to: 'a5d919d',
+    // version: 'v0.1.1',
+
+    from: 'a5d919d',
+    to: '4408a64',
+    version: 'v0.1.2',
+
+    // from: '4408a64',
+    // to: 80d51d7',
+    // version: 'v0.1.3'
+
+  }, function(err, log) {
+    if (err) throw err;
+
+    fs.appendFile(filename, { encoding: 'utf8' }, function(err, prevLog) {
+      if (err) throw err;
+      prevLog = prevLog || '';
+
+      fs.writeFile(filename, log + prevLog, function(err) {
+        if (err) throw err;
+
+        done();
+      });
+    });
+  });
 });
 
 gulp.task('version', ['git']);
