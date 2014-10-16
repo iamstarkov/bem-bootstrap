@@ -1,11 +1,11 @@
 {
   "name": "bem-bootstrap",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Bootstrap blocks in BEM terms",
   "homepage": "https://matmuchrapna.github.io/bem-bootstrap/",
   "repository": {
-    "type" : "git",
-    "url" : "http://github.com/matmuchrapna/bem-bootstrap.git"
+    "type": "git",
+    "url": "http://github.com/matmuchrapna/bem-bootstrap.git"
   },
   "authors": [
     "Vladimir Starkov <matmuchrapna@gmail.com> (http://vstarkov.com)"
