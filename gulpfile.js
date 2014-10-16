@@ -332,9 +332,11 @@ gulp.task('process-core', function(done) {
       }
 
       if (filename === 'grid') {
-        storage.replace(/\.container/g, '.grid')
-                .replace(/\.container-fluid/g, '.grid_fluid')
-                .replace(/\.row/g, '.grid__row')
+        storage
+                .replace(/\.container-fixed\(\)/g, '.grid-fixed()')
+                .replace(/\.container-fluid/g, '.grid')
+                .replace(/\.container {/g, '.grid_fixed {')
+                .replace(/\.row {/g, '.grid__row {')
                 .add(storage.level, filename, storage.content);
       }
 
