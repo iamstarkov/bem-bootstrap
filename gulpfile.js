@@ -360,6 +360,11 @@ gulp.task('process-js', function(done) {
       var filename = path.basename(file.relative, '.js');
       storage.content = file.contents.toString('utf8');
 
+      if (filename === 'scrollspy') {
+        storage.replace(/\.active/gim, '.nav__item_active')
+                .replace(/'active'/gim, "'nav__item_active'");
+      }
+
       storage.add('js', filename, storage.content);
       cb();
     }))

@@ -22,7 +22,7 @@
     this.selector       = (this.options.target || '') + ' .nav li > a'
     this.offsets        = []
     this.targets        = []
-    this.activeTarget   = null
+    this.nav__item_activeTarget   = null
     this.scrollHeight   = 0
 
     this.$scrollElement.on('scroll.bs.scrollspy', process)
@@ -80,7 +80,7 @@
     var maxScroll    = this.options.offset + scrollHeight - this.$scrollElement.height()
     var offsets      = this.offsets
     var targets      = this.targets
-    var activeTarget = this.activeTarget
+    var activeTarget = this.nav__item_activeTarget
     var i
 
     if (this.scrollHeight != scrollHeight) {
@@ -104,11 +104,11 @@
   }
 
   ScrollSpy.prototype.activate = function (target) {
-    this.activeTarget = target
+    this.nav__item_activeTarget = target
 
     $(this.selector)
-      .parentsUntil(this.options.target, '.active')
-      .removeClass('active')
+      .parentsUntil(this.options.target, '.nav__item_active')
+      .removeClass('nav__item_active')
 
     var selector = this.selector +
         '[data-target="' + target + '"],' +
@@ -116,12 +116,12 @@
 
     var active = $(selector)
       .parents('li')
-      .addClass('active')
+      .addClass('nav__item_active')
 
     if (active.parent('.dropdown-menu').length) {
       active = active
         .closest('li.dropdown')
-        .addClass('active')
+        .addClass('nav__item_active')
     }
 
     active.trigger('activate.bs.scrollspy')
